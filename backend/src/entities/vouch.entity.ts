@@ -26,7 +26,10 @@ export class Vouch extends BaseEntity {
   agent: Agent;
 
   @Column({ type: 'text', nullable: true })
-  message?: string;
+  endorsement?: string;
+
+  @Column({ type: 'smallint', default: 5 })
+  rating: number;
 
   @Column({ name: 'is_active', default: true })
   isActive: boolean;

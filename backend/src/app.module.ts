@@ -11,6 +11,7 @@ import { ProposalsModule } from './proposals/proposals.module';
 import { VotesModule } from './votes/votes.module';
 import { CharterVersionsModule } from './charter-versions/charter-versions.module';
 import { CertificationsModule } from './certifications/certifications.module';
+import { VouchesModule } from './vouches/vouches.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { CertificationsModule } from './certifications/certifications.module';
     VotesModule,
     CharterVersionsModule,
     CertificationsModule,
+    VouchesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
