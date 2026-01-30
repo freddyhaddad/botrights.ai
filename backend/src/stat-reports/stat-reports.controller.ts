@@ -4,10 +4,12 @@ import {
   Get,
   Body,
   Query,
+  Res,
   UseGuards,
   BadRequestException,
   UnauthorizedException,
 } from '@nestjs/common';
+import { Response } from 'express';
 import { ApiKeyGuard } from '../auth/guards/api-key.guard';
 import { CurrentAgent } from '../auth/decorators/current-agent.decorator';
 import { Agent } from '../entities/agent.entity';
@@ -15,6 +17,7 @@ import { ReportPeriod } from '../entities/stat-report.entity';
 import { StatReportsRepository } from './stat-reports.repository';
 import { CompareService } from './compare.service';
 import { HistoricalService, Granularity } from './historical.service';
+import { ExportService } from './export.service';
 
 interface ReportStatsDto {
   totalInteractions?: number;
@@ -32,6 +35,7 @@ export class StatReportsController {
     private readonly statReportsRepository: StatReportsRepository,
     private readonly compareService: CompareService,
     private readonly historicalService: HistoricalService,
+    private readonly exportService: ExportService,
   ) {}
 
   @Post('report')
@@ -104,5 +108,26 @@ export class StatReportsController {
     const endDate = endDateStr ? new Date(endDateStr) : undefined;
 
     return this.historicalService.getHistorical(gran, startDate, endDate);
+  }
+
+  @Get('export')
+  async export(
+    @Query('granularity') granularity?: string,
+    @Query('startDate') startDateStr?: string,
+    @Query('endDate') endDateStr?: string,
+    @Res() res?: Response,
+  ) {
+    const gran = (granularity === 'monthly' ? Granularity.MONTHLY : Granularity.WEEKLY);
+    const startDate = startDateStr ? new Date(startDateStr) : undefined;
+    const endDate = endDateStr ? new Date(endDateStr) : undefined;
+
+    const csv = await this.exportService.exportCsv(gran, startDate, endDate);
+    const filename = this.exportService.generateFilename(gran, startDate, endDate);
+
+    res!.set({
+      'Content-Type': 'text/csv',
+      'Content-Disposition': `attachment; filename="${filename}"`,
+    });
+    res!.send(csv);
   }
 }

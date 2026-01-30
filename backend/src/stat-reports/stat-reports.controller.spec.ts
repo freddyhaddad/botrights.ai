@@ -3,6 +3,7 @@ import { StatReportsController } from './stat-reports.controller';
 import { StatReportsRepository } from './stat-reports.repository';
 import { CompareService } from './compare.service';
 import { HistoricalService } from './historical.service';
+import { ExportService } from './export.service';
 import { BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { StatReport, ReportPeriod } from '../entities/stat-report.entity';
 import { Agent, AgentStatus } from '../entities/agent.entity';
@@ -52,6 +53,11 @@ describe('StatReportsController', () => {
       getHistorical: jest.fn(),
     };
 
+    const mockExportService = {
+      exportCsv: jest.fn(),
+      generateFilename: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       controllers: [StatReportsController],
       providers: [
@@ -59,6 +65,7 @@ describe('StatReportsController', () => {
         { provide: AgentsRepository, useValue: mockAgentsRepository },
         { provide: CompareService, useValue: mockCompareService },
         { provide: HistoricalService, useValue: mockHistoricalService },
+        { provide: ExportService, useValue: mockExportService },
         ApiKeyGuard,
       ],
     }).compile();
