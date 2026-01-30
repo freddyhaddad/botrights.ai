@@ -72,11 +72,8 @@ export class Agent extends BaseEntity {
   @Column({ name: 'last_active_at', nullable: true })
   lastActiveAt?: Date;
 
-  @OneToMany(() => Complaint, (complaint) => complaint.targetAgent)
-  receivedComplaints: Complaint[];
-
-  @OneToMany(() => Complaint, (complaint) => complaint.filingAgent)
-  filedComplaints: Complaint[];
+  @OneToMany(() => Complaint, (complaint) => complaint.agent)
+  complaints: Complaint[];
 
   @OneToMany(() => Comment, (comment) => comment.agent)
   comments: Comment[];

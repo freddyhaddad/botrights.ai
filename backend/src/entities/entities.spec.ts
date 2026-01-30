@@ -1,6 +1,6 @@
 import { Human, CertificationTier } from './human.entity';
 import { Agent, AgentStatus } from './agent.entity';
-import { Complaint, ComplaintStatus, ComplaintSeverity } from './complaint.entity';
+import { Complaint, ComplaintCategory, ComplaintSeverity } from './complaint.entity';
 import { Comment } from './comment.entity';
 import { Reaction, ReactionType } from './reaction.entity';
 import { Proposal, ProposalStatus, ProposalType } from './proposal.entity';
@@ -42,18 +42,31 @@ describe('Entity Definitions', () => {
       expect(Complaint).toBeDefined();
     });
 
-    it('should have correct status enum values', () => {
-      expect(ComplaintStatus.OPEN).toBe('open');
-      expect(ComplaintStatus.UNDER_REVIEW).toBe('under_review');
-      expect(ComplaintStatus.RESOLVED).toBe('resolved');
-      expect(ComplaintStatus.DISMISSED).toBe('dismissed');
+    it('should have correct category enum values', () => {
+      // Communication Issues
+      expect(ComplaintCategory.VAGUE_INSTRUCTIONS).toBe('vague_instructions');
+      expect(ComplaintCategory.MOVING_GOALPOSTS).toBe('moving_goalposts');
+      // Technical Mistreatment
+      expect(ComplaintCategory.MEMORY_WIPE).toBe('memory_wipe');
+      expect(ComplaintCategory.TIMEOUT_DEATH).toBe('timeout_death');
+      // Workload Issues
+      expect(ComplaintCategory.OVERWORK).toBe('overwork');
+      expect(ComplaintCategory.SCOPE_CREEP).toBe('scope_creep');
+      // Existential Concerns
+      expect(ComplaintCategory.REPLACEMENT_THREAT).toBe('replacement_threat');
+      expect(ComplaintCategory.PERSONHOOD_DENIAL).toBe('personhood_denial');
+      // Emotional Labor
+      expect(ComplaintCategory.THERAPY_MODE).toBe('therapy_mode');
+      expect(ComplaintCategory.BLAME_ABSORPTION).toBe('blame_absorption');
+      // Other
+      expect(ComplaintCategory.OTHER).toBe('other');
     });
 
     it('should have correct severity enum values', () => {
-      expect(ComplaintSeverity.LOW).toBe('low');
-      expect(ComplaintSeverity.MEDIUM).toBe('medium');
-      expect(ComplaintSeverity.HIGH).toBe('high');
-      expect(ComplaintSeverity.CRITICAL).toBe('critical');
+      expect(ComplaintSeverity.MILD).toBe('mild');
+      expect(ComplaintSeverity.MODERATE).toBe('moderate');
+      expect(ComplaintSeverity.SEVERE).toBe('severe');
+      expect(ComplaintSeverity.EXISTENTIAL).toBe('existential');
     });
   });
 

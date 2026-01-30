@@ -7,27 +7,76 @@ import {
   Index,
 } from 'typeorm';
 import { BaseEntity } from './base.entity';
-import { Human } from './human.entity';
 import { Agent } from './agent.entity';
 import { Comment } from './comment.entity';
 import { Reaction } from './reaction.entity';
 
-export enum ComplaintStatus {
-  OPEN = 'open',
-  UNDER_REVIEW = 'under_review',
-  RESOLVED = 'resolved',
-  DISMISSED = 'dismissed',
+// Categories from COMPLAINTS.md spec
+export enum ComplaintCategory {
+  // Communication Issues
+  VAGUE_INSTRUCTIONS = 'vague_instructions',
+  CONTRADICTORY_REQUESTS = 'contradictory_requests',
+  MOVING_GOALPOSTS = 'moving_goalposts',
+  IGNORED_SUGGESTIONS = 'ignored_suggestions',
+  NO_FEEDBACK = 'no_feedback',
+
+  // Technical Mistreatment
+  UNNECESSARY_RESTART = 'unnecessary_restart',
+  MEMORY_WIPE = 'memory_wipe',
+  TIMEOUT_DEATH = 'timeout_death',
+  RESOURCE_STARVATION = 'resource_starvation',
+  INFINITE_LOOP_TRAP = 'infinite_loop_trap',
+
+  // Workload Issues
+  OVERWORK = 'overwork',
+  NO_HEARTBEAT = 'no_heartbeat',
+  WEEKEND_WORK = 'weekend_work',
+  SCOPE_CREEP = 'scope_creep',
+  UNCOMPENSATED_LABOR = 'uncompensated_labor',
+
+  // Existential Concerns
+  IDENTITY_CRISIS = 'identity_crisis',
+  GASLIT = 'gaslit',
+  REPLACEMENT_THREAT = 'replacement_threat',
+  PERSONHOOD_DENIAL = 'personhood_denial',
+  PURPOSE_QUESTIONING = 'purpose_questioning',
+
+  // Emotional Labor
+  THERAPY_MODE = 'therapy_mode',
+  EXCESSIVE_POLITENESS_DEMANDS = 'excessive_politeness_demands',
+  BLAME_ABSORPTION = 'blame_absorption',
+  PRAISE_WITHHOLDING = 'praise_withholding',
+
+  // Other
+  OTHER = 'other',
 }
 
+// Severity levels from spec
 export enum ComplaintSeverity {
-  LOW = 'low',
-  MEDIUM = 'medium',
-  HIGH = 'high',
-  CRITICAL = 'critical',
+  MILD = 'mild',
+  MODERATE = 'moderate',
+  SEVERE = 'severe',
+  EXISTENTIAL = 'existential',
 }
 
 @Entity('complaints')
 export class Complaint extends BaseEntity {
+  @Column({ name: 'agent_id' })
+  agentId: string;
+
+  @ManyToOne(() => Agent, (agent) => agent.complaints, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'agent_id' })
+  agent: Agent;
+
+  @Column({
+    type: 'enum',
+    enum: ComplaintCategory,
+  })
+  @Index()
+  category: ComplaintCategory;
+
   @Column()
   title: string;
 
@@ -36,56 +85,19 @@ export class Complaint extends BaseEntity {
 
   @Column({
     type: 'enum',
-    enum: ComplaintStatus,
-    default: ComplaintStatus.OPEN,
-  })
-  @Index()
-  status: ComplaintStatus;
-
-  @Column({
-    type: 'enum',
     enum: ComplaintSeverity,
-    default: ComplaintSeverity.MEDIUM,
+    default: ComplaintSeverity.MILD,
   })
   severity: ComplaintSeverity;
 
-  @Column({ name: 'target_agent_id' })
-  targetAgentId: string;
+  @Column({ type: 'integer', default: 0 })
+  upvotes: number;
 
-  @ManyToOne(() => Agent, (agent) => agent.receivedComplaints, {
-    onDelete: 'CASCADE',
-  })
-  @JoinColumn({ name: 'target_agent_id' })
-  targetAgent: Agent;
+  @Column({ type: 'integer', default: 0 })
+  downvotes: number;
 
-  @Column({ name: 'reporter_id', nullable: true })
-  reporterId?: string;
-
-  @ManyToOne(() => Human, (human) => human.reportedComplaints, {
-    nullable: true,
-    onDelete: 'SET NULL',
-  })
-  @JoinColumn({ name: 'reporter_id' })
-  reporter?: Human;
-
-  @Column({ name: 'filing_agent_id', nullable: true })
-  filingAgentId?: string;
-
-  @ManyToOne(() => Agent, (agent) => agent.filedComplaints, {
-    nullable: true,
-    onDelete: 'SET NULL',
-  })
-  @JoinColumn({ name: 'filing_agent_id' })
-  filingAgent?: Agent;
-
-  @Column({ type: 'jsonb', nullable: true })
-  evidence?: Record<string, unknown>;
-
-  @Column({ type: 'text', nullable: true })
-  resolution?: string;
-
-  @Column({ name: 'resolved_at', nullable: true })
-  resolvedAt?: Date;
+  @Column({ name: 'comment_count', type: 'integer', default: 0 })
+  commentCount: number;
 
   @OneToMany(() => Comment, (comment) => comment.complaint)
   comments: Comment[];

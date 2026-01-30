@@ -27,7 +27,6 @@ describe('HumansRepository', () => {
     createdAt: new Date(),
     updatedAt: new Date(),
     agents: [],
-    reportedComplaints: [],
     comments: [],
     reactions: [],
     votes: [],

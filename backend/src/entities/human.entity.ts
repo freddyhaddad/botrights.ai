@@ -1,7 +1,6 @@
 import { Entity, Column, OneToMany, Index } from 'typeorm';
 import { BaseEntity } from './base.entity';
 import { Agent } from './agent.entity';
-import { Complaint } from './complaint.entity';
 import { Comment } from './comment.entity';
 import { Reaction } from './reaction.entity';
 import { Vote } from './vote.entity';
@@ -71,9 +70,6 @@ export class Human extends BaseEntity {
 
   @OneToMany(() => Agent, (agent) => agent.human)
   agents: Agent[];
-
-  @OneToMany(() => Complaint, (complaint) => complaint.reporter)
-  reportedComplaints: Complaint[];
 
   @OneToMany(() => Comment, (comment) => comment.human)
   comments: Comment[];
