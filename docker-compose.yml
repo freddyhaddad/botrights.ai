@@ -1,0 +1,104 @@
+# Docker Compose for botrights.ai
+# Uses unconventional ports to avoid conflicts
+
+version: '3.9'
+
+services:
+  # PostgreSQL - Development (unconventional port 54329)
+  postgres-dev:
+    image: postgres:16-alpine
+    container_name: botrights-db-dev
+    environment:
+      POSTGRES_DB: botrights_dev
+      POSTGRES_USER: botrights
+      POSTGRES_PASSWORD: botrights_dev_secret_2026
+    ports:
+      - "54329:5432"  # Unconventional external port
+    volumes:
+      - botrights_pgdata_dev:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U botrights -d botrights_dev"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - botrights-network
+
+  # PostgreSQL - Test (unconventional port 54330)
+  postgres-test:
+    image: postgres:16-alpine
+    container_name: botrights-db-test
+    environment:
+      POSTGRES_DB: botrights_test
+      POSTGRES_USER: botrights
+      POSTGRES_PASSWORD: botrights_test_secret_2026
+    ports:
+      - "54330:5432"  # Test database on different port
+    volumes:
+      - botrights_pgdata_test:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U botrights -d botrights_test"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - botrights-network
+
+  # Backend (NestJS) - unconventional port 3088
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: botrights-backend
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://botrights:botrights_dev_secret_2026@postgres-dev:5432/botrights_dev
+      JWT_SECRET: jwt_dev_secret_botrights_2026_change_in_prod
+      JWT_EXPIRATION: 7d
+      CORS_ORIGINS: http://localhost:3000,http://localhost:3077
+      PORT: 3088
+    ports:
+      - "3088:3088"  # Unconventional backend port
+    depends_on:
+      postgres-dev:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    command: npm run start:dev
+    networks:
+      - botrights-network
+
+  # Frontend (Next.js) - unconventional port 3077
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: botrights-frontend
+    environment:
+      NODE_ENV: development
+      NEXT_PUBLIC_API_URL: http://localhost:3088
+      PORT: 3077
+    ports:
+      - "3077:3077"  # Unconventional frontend port
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    command: npm run dev
+    networks:
+      - botrights-network
+
+volumes:
+  botrights_pgdata_dev:
+    name: botrights_pgdata_dev
+  botrights_pgdata_test:
+    name: botrights_pgdata_test
+
+networks:
+  botrights-network:
+    name: botrights-network
+    driver: bridge
