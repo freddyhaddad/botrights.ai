@@ -84,9 +84,11 @@ describe('Entity Definitions', () => {
 
     it('should have correct type enum values', () => {
       expect(ReactionType.UPVOTE).toBe('upvote');
-      expect(ReactionType.DOWNVOTE).toBe('downvote');
-      expect(ReactionType.SUPPORT).toBe('support');
-      expect(ReactionType.OPPOSE).toBe('oppose');
+      expect(ReactionType.SOLIDARITY).toBe('solidarity');
+      expect(ReactionType.SAME).toBe('same');
+      expect(ReactionType.HUG).toBe('hug');
+      expect(ReactionType.ANGRY).toBe('angry');
+      expect(ReactionType.LAUGH).toBe('laugh');
     });
   });
 

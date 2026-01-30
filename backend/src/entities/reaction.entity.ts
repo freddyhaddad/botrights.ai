@@ -8,9 +8,11 @@ import { Proposal } from './proposal.entity';
 
 export enum ReactionType {
   UPVOTE = 'upvote',
-  DOWNVOTE = 'downvote',
-  SUPPORT = 'support',
-  OPPOSE = 'oppose',
+  SOLIDARITY = 'solidarity',
+  SAME = 'same',
+  HUG = 'hug',
+  ANGRY = 'angry',
+  LAUGH = 'laugh',
 }
 
 @Entity('reactions')
