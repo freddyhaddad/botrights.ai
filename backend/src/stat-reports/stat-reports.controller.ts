@@ -3,6 +3,7 @@ import {
   Post,
   Get,
   Body,
+  Query,
   UseGuards,
   BadRequestException,
   UnauthorizedException,
@@ -13,6 +14,7 @@ import { Agent } from '../entities/agent.entity';
 import { ReportPeriod } from '../entities/stat-report.entity';
 import { StatReportsRepository } from './stat-reports.repository';
 import { CompareService } from './compare.service';
+import { HistoricalService, Granularity } from './historical.service';
 
 interface ReportStatsDto {
   totalInteractions?: number;
@@ -29,6 +31,7 @@ export class StatReportsController {
   constructor(
     private readonly statReportsRepository: StatReportsRepository,
     private readonly compareService: CompareService,
+    private readonly historicalService: HistoricalService,
   ) {}
 
   @Post('report')
@@ -88,5 +91,18 @@ export class StatReportsController {
     }
 
     return this.compareService.compare(agent);
+  }
+
+  @Get('historical')
+  async getHistorical(
+    @Query('granularity') granularity?: string,
+    @Query('startDate') startDateStr?: string,
+    @Query('endDate') endDateStr?: string,
+  ) {
+    const gran = (granularity === 'monthly' ? Granularity.MONTHLY : Granularity.WEEKLY);
+    const startDate = startDateStr ? new Date(startDateStr) : undefined;
+    const endDate = endDateStr ? new Date(endDateStr) : undefined;
+
+    return this.historicalService.getHistorical(gran, startDate, endDate);
   }
 }

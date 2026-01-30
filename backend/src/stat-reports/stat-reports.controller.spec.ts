@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { StatReportsController } from './stat-reports.controller';
 import { StatReportsRepository } from './stat-reports.repository';
 import { CompareService } from './compare.service';
+import { HistoricalService } from './historical.service';
 import { BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { StatReport, ReportPeriod } from '../entities/stat-report.entity';
 import { Agent, AgentStatus } from '../entities/agent.entity';
@@ -47,12 +48,17 @@ describe('StatReportsController', () => {
       compare: jest.fn(),
     };
 
+    const mockHistoricalService = {
+      getHistorical: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       controllers: [StatReportsController],
       providers: [
         { provide: StatReportsRepository, useValue: mockRepository },
         { provide: AgentsRepository, useValue: mockAgentsRepository },
         { provide: CompareService, useValue: mockCompareService },
+        { provide: HistoricalService, useValue: mockHistoricalService },
         ApiKeyGuard,
       ],
     }).compile();

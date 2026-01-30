@@ -4,12 +4,13 @@ import { StatReport } from '../entities/stat-report.entity';
 import { StatReportsRepository } from './stat-reports.repository';
 import { StatReportsController } from './stat-reports.controller';
 import { CompareService } from './compare.service';
+import { HistoricalService } from './historical.service';
 import { AgentsModule } from '../agents/agents.module';
 
 @Module({
   imports: [TypeOrmModule.forFeature([StatReport]), AgentsModule],
   controllers: [StatReportsController],
-  providers: [StatReportsRepository, CompareService],
-  exports: [StatReportsRepository, CompareService],
+  providers: [StatReportsRepository, CompareService, HistoricalService],
+  exports: [StatReportsRepository, CompareService, HistoricalService],
 })
 export class StatReportsModule {}
