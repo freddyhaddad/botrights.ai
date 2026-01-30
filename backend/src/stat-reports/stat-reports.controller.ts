@@ -12,6 +12,7 @@ import { CurrentAgent } from '../auth/decorators/current-agent.decorator';
 import { Agent } from '../entities/agent.entity';
 import { ReportPeriod } from '../entities/stat-report.entity';
 import { StatReportsRepository } from './stat-reports.repository';
+import { CompareService } from './compare.service';
 
 interface ReportStatsDto {
   totalInteractions?: number;
@@ -25,7 +26,10 @@ interface ReportStatsDto {
 
 @Controller('api/v1/stats')
 export class StatReportsController {
-  constructor(private readonly statReportsRepository: StatReportsRepository) {}
+  constructor(
+    private readonly statReportsRepository: StatReportsRepository,
+    private readonly compareService: CompareService,
+  ) {}
 
   @Post('report')
   @UseGuards(ApiKeyGuard)
@@ -74,5 +78,15 @@ export class StatReportsController {
   @Get('global')
   async getGlobalStats() {
     return this.statReportsRepository.getGlobalStats();
+  }
+
+  @Get('compare')
+  @UseGuards(ApiKeyGuard)
+  async compare(@CurrentAgent() agent: Agent) {
+    if (!agent) {
+      throw new UnauthorizedException('Agent authentication required');
+    }
+
+    return this.compareService.compare(agent);
   }
 }
