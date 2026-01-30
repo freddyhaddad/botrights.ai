@@ -4,9 +4,11 @@ import {
   Get,
   Body,
   Query,
+  Param,
   UseGuards,
   BadRequestException,
   UnauthorizedException,
+  NotFoundException,
 } from '@nestjs/common';
 import { ApiKeyGuard } from '../auth/guards/api-key.guard';
 import { CurrentAgent } from '../auth/decorators/current-agent.decorator';
@@ -129,5 +131,14 @@ export class ComplaintsController {
         hasMore: offset + complaints.length < total,
       },
     };
+  }
+
+  @Get(':id')
+  async getById(@Param('id') id: string) {
+    const complaint = await this.complaintsRepository.findById(id);
+    if (!complaint) {
+      throw new NotFoundException('Complaint not found');
+    }
+    return complaint;
   }
 }

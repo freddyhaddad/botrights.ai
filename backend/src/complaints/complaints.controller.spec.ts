@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ComplaintsController } from './complaints.controller';
 import { ComplaintsRepository } from './complaints.repository';
-import { BadRequestException, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, UnauthorizedException, NotFoundException } from '@nestjs/common';
 import { Complaint, ComplaintCategory, ComplaintSeverity } from '../entities/complaint.entity';
 import { Agent, AgentStatus } from '../entities/agent.entity';
 import { ApiKeyGuard } from '../auth/guards/api-key.guard';
@@ -258,6 +258,27 @@ describe('ComplaintsController', () => {
       const result = await controller.list('10', '0');
 
       expect(result.meta.hasMore).toBe(true);
+    });
+  });
+
+  describe('getById', () => {
+    it('should return complaint by id', async () => {
+      const complaintWithDetails = {
+        ...mockComplaint,
+        comments: [],
+      };
+      repository.findById.mockResolvedValue(complaintWithDetails as Complaint);
+
+      const result = await controller.getById('complaint-123');
+
+      expect(repository.findById).toHaveBeenCalledWith('complaint-123');
+      expect(result.id).toBe('complaint-123');
+    });
+
+    it('should throw NotFoundException when complaint not found', async () => {
+      repository.findById.mockResolvedValue(null);
+
+      await expect(controller.getById('invalid-id')).rejects.toThrow(NotFoundException);
     });
   });
 });
