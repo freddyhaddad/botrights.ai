@@ -13,6 +13,9 @@ import { CharterVersionsModule } from './charter-versions/charter-versions.modul
 import { CertificationsModule } from './certifications/certifications.module';
 import { VouchesModule } from './vouches/vouches.module';
 import { StatReportsModule } from './stat-reports/stat-reports.module';
+import { HumansModule } from './humans/humans.module';
+import { ReactionsModule } from './reactions/reactions.module';
+import { LeaderboardModule } from './leaderboard/leaderboard.module';
 
 @Module({
   imports: [
@@ -31,6 +34,9 @@ import { StatReportsModule } from './stat-reports/stat-reports.module';
     CertificationsModule,
     VouchesModule,
     StatReportsModule,
+    HumansModule,
+    ReactionsModule,
+    LeaderboardModule,
   ],
   controllers: [AppController],
   providers: [AppService],
