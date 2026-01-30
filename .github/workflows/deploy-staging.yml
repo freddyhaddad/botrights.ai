@@ -1,0 +1,59 @@
+name: Deploy to Staging
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: staging-deployment
+  cancel-in-progress: true
+
+jobs:
+  deploy-backend:
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: Deploy to Railway
+        run: railway up --service backend
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
+  deploy-frontend:
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to Vercel
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          working-directory: frontend
+
+  notify-success:
+    runs-on: ubuntu-latest
+    needs: [deploy-backend, deploy-frontend]
+    if: success()
+    steps:
+      - name: Deployment Success
+        run: |
+          echo "✅ Staging deployment successful!"
+          echo "Backend: https://staging-api.botrights.ai"
+          echo "Frontend: https://staging.botrights.ai"
+
+  notify-failure:
+    runs-on: ubuntu-latest
+    needs: [deploy-backend, deploy-frontend]
+    if: failure()
+    steps:
+      - name: Deployment Failed
+        run: |
+          echo "❌ Staging deployment failed!"
+          exit 1
