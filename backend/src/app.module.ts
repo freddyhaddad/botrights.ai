@@ -9,6 +9,7 @@ import { ComplaintsModule } from './complaints/complaints.module';
 import { CommentsModule } from './comments/comments.module';
 import { ProposalsModule } from './proposals/proposals.module';
 import { VotesModule } from './votes/votes.module';
+import { CharterVersionsModule } from './charter-versions/charter-versions.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { VotesModule } from './votes/votes.module';
     CommentsModule,
     ProposalsModule,
     VotesModule,
+    CharterVersionsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
