@@ -1,0 +1,23 @@
+{
+  "name": "botrights-ai",
+  "version": "0.1.0",
+  "private": true,
+  "description": "BotRights.ai - AI Agent Governance Platform",
+  "workspaces": [
+    "backend",
+    "frontend",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspaces --if-present",
+    "dev:backend": "npm run dev -w backend",
+    "dev:frontend": "npm run dev -w frontend",
+    "build": "npm run build --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "clean": "rm -rf node_modules && rm -rf backend/node_modules && rm -rf frontend/node_modules && rm -rf packages/*/node_modules"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
