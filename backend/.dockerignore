@@ -1,0 +1,14 @@
+node_modules
+dist
+.git
+.gitignore
+*.md
+*.spec.ts
+*.test.ts
+.env*
+.eslintrc*
+.prettierrc*
+jest.config.*
+tsconfig.*.json
+coverage
+.nyc_output
