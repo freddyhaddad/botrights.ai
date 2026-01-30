@@ -1,14 +1,14 @@
-import { Entity, Column, ManyToOne, JoinColumn, Index } from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn, Index, Unique } from 'typeorm';
 import { BaseEntity } from './base.entity';
 import { Agent } from './agent.entity';
 
 export enum ReportPeriod {
   DAILY = 'daily',
   WEEKLY = 'weekly',
-  MONTHLY = 'monthly',
 }
 
 @Entity('stat_reports')
+@Unique(['agentId', 'period', 'periodStart'])
 export class StatReport extends BaseEntity {
   @Column({ name: 'agent_id' })
   @Index()

@@ -12,6 +12,7 @@ import { VotesModule } from './votes/votes.module';
 import { CharterVersionsModule } from './charter-versions/charter-versions.module';
 import { CertificationsModule } from './certifications/certifications.module';
 import { VouchesModule } from './vouches/vouches.module';
+import { StatReportsModule } from './stat-reports/stat-reports.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { VouchesModule } from './vouches/vouches.module';
     CharterVersionsModule,
     CertificationsModule,
     VouchesModule,
+    StatReportsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -165,7 +165,6 @@ describe('Entity Definitions', () => {
     it('should have correct period enum values', () => {
       expect(ReportPeriod.DAILY).toBe('daily');
       expect(ReportPeriod.WEEKLY).toBe('weekly');
-      expect(ReportPeriod.MONTHLY).toBe('monthly');
     });
   });
 });
