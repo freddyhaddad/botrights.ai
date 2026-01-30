@@ -107,4 +107,75 @@ describe('ProposalsController', () => {
       );
     });
   });
+
+  describe('list', () => {
+    it('should return proposals with default pagination', async () => {
+      repository.findAll.mockResolvedValue([mockProposal as Proposal]);
+      repository.count.mockResolvedValue(1);
+
+      const result = await controller.list();
+
+      expect(repository.findAll).toHaveBeenCalledWith({
+        limit: 20,
+        offset: 0,
+        status: undefined,
+        theme: undefined,
+      });
+      expect(result.data).toHaveLength(1);
+      expect(result.meta.total).toBe(1);
+    });
+
+    it('should filter by status', async () => {
+      repository.findAll.mockResolvedValue([mockProposal as Proposal]);
+      repository.count.mockResolvedValue(1);
+
+      await controller.list(undefined, undefined, ProposalStatus.ACTIVE);
+
+      expect(repository.findAll).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: ProposalStatus.ACTIVE,
+        }),
+      );
+    });
+
+    it('should filter by theme', async () => {
+      repository.findAll.mockResolvedValue([mockProposal as Proposal]);
+      repository.count.mockResolvedValue(1);
+
+      await controller.list(undefined, undefined, undefined, ProposalTheme.RIGHTS);
+
+      expect(repository.findAll).toHaveBeenCalledWith(
+        expect.objectContaining({
+          theme: ProposalTheme.RIGHTS,
+        }),
+      );
+    });
+
+    it('should apply custom pagination', async () => {
+      repository.findAll.mockResolvedValue([mockProposal as Proposal]);
+      repository.count.mockResolvedValue(50);
+
+      const result = await controller.list('10', '20');
+
+      expect(repository.findAll).toHaveBeenCalledWith(
+        expect.objectContaining({
+          limit: 10,
+          offset: 20,
+        }),
+      );
+      expect(result.meta.hasMore).toBe(true);
+    });
+
+    it('should throw BadRequestException when status is invalid', async () => {
+      await expect(
+        controller.list(undefined, undefined, 'invalid' as ProposalStatus),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should throw BadRequestException when theme is invalid', async () => {
+      await expect(
+        controller.list(undefined, undefined, undefined, 'invalid' as ProposalTheme),
+      ).rejects.toThrow(BadRequestException);
+    });
+  });
 });

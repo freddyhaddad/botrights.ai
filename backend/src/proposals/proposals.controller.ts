@@ -1,7 +1,9 @@
 import {
   Controller,
   Post,
+  Get,
   Body,
+  Query,
   UseGuards,
   BadRequestException,
   UnauthorizedException,
@@ -9,7 +11,7 @@ import {
 import { ApiKeyGuard } from '../auth/guards/api-key.guard';
 import { CurrentAgent } from '../auth/decorators/current-agent.decorator';
 import { Agent } from '../entities/agent.entity';
-import { ProposalTheme } from '../entities/proposal.entity';
+import { ProposalStatus, ProposalTheme } from '../entities/proposal.entity';
 import { ProposalsRepository } from './proposals.repository';
 import { ProposalRateLimit } from '../rate-limit/rate-limit.guard';
 
@@ -51,5 +53,51 @@ export class ProposalsController {
     });
 
     return proposal;
+  }
+
+  @Get()
+  async list(
+    @Query('limit') limitStr?: string,
+    @Query('offset') offsetStr?: string,
+    @Query('status') status?: ProposalStatus,
+    @Query('theme') theme?: ProposalTheme,
+  ) {
+    const limit = limitStr ? parseInt(limitStr, 10) : 20;
+    const offset = offsetStr ? parseInt(offsetStr, 10) : 0;
+
+    // Validate limit
+    if (isNaN(limit) || limit < 1 || limit > 100) {
+      throw new BadRequestException('Limit must be between 1 and 100');
+    }
+
+    // Validate offset
+    if (isNaN(offset) || offset < 0) {
+      throw new BadRequestException('Offset must be a non-negative number');
+    }
+
+    // Validate status if provided
+    if (status && !Object.values(ProposalStatus).includes(status)) {
+      throw new BadRequestException('Invalid status');
+    }
+
+    // Validate theme if provided
+    if (theme && !Object.values(ProposalTheme).includes(theme)) {
+      throw new BadRequestException('Invalid theme');
+    }
+
+    const [proposals, total] = await Promise.all([
+      this.proposalsRepository.findAll({ limit, offset, status, theme }),
+      this.proposalsRepository.count({ status, theme }),
+    ]);
+
+    return {
+      data: proposals,
+      meta: {
+        total,
+        limit,
+        offset,
+        hasMore: offset + proposals.length < total,
+      },
+    };
   }
 }
