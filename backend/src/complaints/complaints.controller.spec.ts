@@ -38,6 +38,7 @@ describe('ComplaintsController', () => {
       findById: jest.fn(),
       findAll: jest.fn(),
       count: jest.fn(),
+      delete: jest.fn(),
     };
 
     const mockAgentsRepository = {
@@ -279,6 +280,41 @@ describe('ComplaintsController', () => {
       repository.findById.mockResolvedValue(null);
 
       await expect(controller.getById('invalid-id')).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('delete', () => {
+    it('should delete complaint when owner requests', async () => {
+      repository.findById.mockResolvedValue(mockComplaint as Complaint);
+      repository.delete.mockResolvedValue(true);
+
+      await controller.delete('complaint-123', mockAgent as Agent);
+
+      expect(repository.delete).toHaveBeenCalledWith('complaint-123');
+    });
+
+    it('should throw NotFoundException when complaint does not exist', async () => {
+      repository.findById.mockResolvedValue(null);
+
+      await expect(controller.delete('invalid-id', mockAgent as Agent)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('should throw ForbiddenException when non-owner tries to delete', async () => {
+      const otherAgent = { ...mockAgent, id: 'other-agent' };
+      repository.findById.mockResolvedValue(mockComplaint as Complaint);
+
+      const { ForbiddenException } = jest.requireActual('@nestjs/common');
+      await expect(controller.delete('complaint-123', otherAgent as Agent)).rejects.toThrow(
+        ForbiddenException,
+      );
+    });
+
+    it('should throw UnauthorizedException when no agent provided', async () => {
+      await expect(controller.delete('complaint-123', undefined as any)).rejects.toThrow(
+        UnauthorizedException,
+      );
     });
   });
 });

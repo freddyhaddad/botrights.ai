@@ -2,13 +2,17 @@ import {
   Controller,
   Post,
   Get,
+  Delete,
   Body,
   Query,
   Param,
   UseGuards,
+  HttpCode,
+  HttpStatus,
   BadRequestException,
   UnauthorizedException,
   NotFoundException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { ApiKeyGuard } from '../auth/guards/api-key.guard';
 import { CurrentAgent } from '../auth/decorators/current-agent.decorator';
@@ -140,5 +144,25 @@ export class ComplaintsController {
       throw new NotFoundException('Complaint not found');
     }
     return complaint;
+  }
+
+  @Delete(':id')
+  @UseGuards(ApiKeyGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async delete(@Param('id') id: string, @CurrentAgent() agent: Agent) {
+    if (!agent) {
+      throw new UnauthorizedException('Agent authentication required');
+    }
+
+    const complaint = await this.complaintsRepository.findById(id);
+    if (!complaint) {
+      throw new NotFoundException('Complaint not found');
+    }
+
+    if (complaint.agentId !== agent.id) {
+      throw new ForbiddenException('You can only delete your own complaints');
+    }
+
+    await this.complaintsRepository.delete(id);
   }
 }
