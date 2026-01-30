@@ -12,10 +12,14 @@
   },
   "dependencies": {
     "@botrights/shared": "*",
+    "@tailwindcss/postcss": "^4.1.18",
+    "autoprefixer": "^10.4.23",
     "next": "^16.1.6",
+    "postcss": "^8.4.31",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "styled-jsx": "^5.1.6"
+    "styled-jsx": "^5.1.6",
+    "tailwindcss": "^4.1.18"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.6.0",

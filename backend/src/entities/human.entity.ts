@@ -7,17 +7,40 @@ import { Reaction } from './reaction.entity';
 import { Vote } from './vote.entity';
 import { Vouch } from './vouch.entity';
 
+export enum CertificationTier {
+  NONE = 'none',
+  BASIC = 'basic',
+  VERIFIED = 'verified',
+  TRUSTED = 'trusted',
+}
+
 @Entity('humans')
 export class Human extends BaseEntity {
-  @Column({ unique: true })
+  // Twitter OAuth fields
+  @Column({ name: 'x_id', unique: true })
   @Index()
-  email: string;
+  xId: string;
 
-  @Column({ name: 'display_name' })
-  displayName: string;
+  @Column({ name: 'x_handle' })
+  @Index()
+  xHandle: string;
 
-  @Column({ name: 'password_hash', select: false })
-  passwordHash: string;
+  @Column({ name: 'x_name' })
+  xName: string;
+
+  @Column({ name: 'x_avatar', nullable: true })
+  xAvatar?: string;
+
+  // Optional email (may be provided by user later)
+  @Column({ unique: true, nullable: true })
+  @Index()
+  email?: string;
+
+  @Column({ name: 'display_name', nullable: true })
+  displayName?: string;
+
+  @Column({ name: 'password_hash', select: false, nullable: true })
+  passwordHash?: string;
 
   @Column({ name: 'email_verified', default: false })
   emailVerified: boolean;
@@ -30,6 +53,18 @@ export class Human extends BaseEntity {
 
   @Column({ name: 'organization_name', nullable: true })
   organizationName?: string;
+
+  // Certification
+  @Column({
+    name: 'certification_tier',
+    type: 'enum',
+    enum: CertificationTier,
+    default: CertificationTier.NONE,
+  })
+  certificationTier: CertificationTier;
+
+  @Column({ name: 'certified_at', nullable: true })
+  certifiedAt?: Date;
 
   @Column({ default: true })
   active: boolean;

@@ -1,4 +1,4 @@
-import { Human } from './human.entity';
+import { Human, CertificationTier } from './human.entity';
 import { Agent, AgentStatus } from './agent.entity';
 import { Complaint, ComplaintStatus, ComplaintSeverity } from './complaint.entity';
 import { Comment } from './comment.entity';
@@ -14,6 +14,13 @@ describe('Entity Definitions', () => {
   describe('Human', () => {
     it('should be defined', () => {
       expect(Human).toBeDefined();
+    });
+
+    it('should have correct certification tier enum values', () => {
+      expect(CertificationTier.NONE).toBe('none');
+      expect(CertificationTier.BASIC).toBe('basic');
+      expect(CertificationTier.VERIFIED).toBe('verified');
+      expect(CertificationTier.TRUSTED).toBe('trusted');
     });
   });
 
