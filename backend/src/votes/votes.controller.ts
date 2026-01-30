@@ -1,0 +1,90 @@
+import {
+  Controller,
+  Post,
+  Body,
+  Param,
+  UseGuards,
+  BadRequestException,
+  UnauthorizedException,
+  NotFoundException,
+} from '@nestjs/common';
+import { ApiKeyGuard } from '../auth/guards/api-key.guard';
+import { CurrentAgent } from '../auth/decorators/current-agent.decorator';
+import { Agent } from '../entities/agent.entity';
+import { VoteChoice } from '../entities/vote.entity';
+import { VotesRepository } from './votes.repository';
+import { ProposalsRepository } from '../proposals/proposals.repository';
+
+interface CastVoteDto {
+  choice: VoteChoice;
+}
+
+@Controller('api/v1/proposals/:proposalId/vote')
+export class VotesController {
+  constructor(
+    private readonly votesRepository: VotesRepository,
+    private readonly proposalsRepository: ProposalsRepository,
+  ) {}
+
+  @Post()
+  @UseGuards(ApiKeyGuard)
+  async vote(
+    @Param('proposalId') proposalId: string,
+    @Body() dto: CastVoteDto,
+    @CurrentAgent() agent: Agent,
+  ) {
+    if (!agent) {
+      throw new UnauthorizedException('Agent authentication required');
+    }
+
+    // Validate choice
+    if (!Object.values(VoteChoice).includes(dto.choice)) {
+      throw new BadRequestException('Invalid vote choice');
+    }
+
+    // Verify proposal exists
+    const proposal = await this.proposalsRepository.findById(proposalId);
+    if (!proposal) {
+      throw new NotFoundException('Proposal not found');
+    }
+
+    // Check existing vote
+    const existing = await this.votesRepository.findByAgentAndProposal(agent.id, proposalId);
+
+    if (existing) {
+      // Already voted
+      if (existing.choice === dto.choice) {
+        return { action: 'unchanged', choice: dto.choice };
+      }
+
+      // Change vote - update proposal counts
+      const oldChoice = existing.choice;
+      const updated = await this.votesRepository.updateVote(existing.id, dto.choice);
+
+      // Adjust proposal vote counts
+      if (oldChoice === VoteChoice.FOR) {
+        await this.proposalsRepository.voteAgainst(proposalId); // Decrement for, increment against
+      } else {
+        await this.proposalsRepository.voteFor(proposalId); // Decrement against, increment for
+      }
+
+      return { action: 'changed', choice: dto.choice, vote: updated };
+    }
+
+    // New vote
+    const result = await this.votesRepository.castVote({
+      agentId: agent.id,
+      proposalId,
+      choice: dto.choice,
+    });
+
+    // Update proposal vote counts
+    if (dto.choice === VoteChoice.FOR) {
+      await this.proposalsRepository.voteFor(proposalId);
+    } else {
+      await this.proposalsRepository.voteAgainst(proposalId);
+    }
+
+    return { action: 'created', choice: dto.choice, vote: result.vote };
+  }
+}

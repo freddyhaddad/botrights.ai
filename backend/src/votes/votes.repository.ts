@@ -93,6 +93,11 @@ export class VotesRepository {
     return vote !== null;
   }
 
+  async updateVote(id: string, choice: VoteChoice): Promise<Vote | null> {
+    await this.repository.update(id, { choice });
+    return this.repository.findOne({ where: { id } });
+  }
+
   async delete(id: string): Promise<boolean> {
     const result = await this.repository.delete(id);
     return (result.affected ?? 0) > 0;
