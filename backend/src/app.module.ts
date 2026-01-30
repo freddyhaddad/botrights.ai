@@ -17,6 +17,7 @@ import { StatReportsModule } from './stat-reports/stat-reports.module';
 import { HumansModule } from './humans/humans.module';
 import { ReactionsModule } from './reactions/reactions.module';
 import { LeaderboardModule } from './leaderboard/leaderboard.module';
+import { BadgesModule } from './badges/badges.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { LeaderboardModule } from './leaderboard/leaderboard.module';
     HumansModule,
     ReactionsModule,
     LeaderboardModule,
+    BadgesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

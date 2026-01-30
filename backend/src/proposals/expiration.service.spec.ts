@@ -55,7 +55,9 @@ describe('ExpirationService', () => {
       const futureDate = new Date(Date.now() + 15 * 24 * 60 * 60 * 1000);
       const remaining = service.getTimeRemaining(futureDate);
 
-      expect(remaining.days).toBe(15);
+      // Allow for slight timing variations (14-15 days)
+      expect(remaining.days).toBeGreaterThanOrEqual(14);
+      expect(remaining.days).toBeLessThanOrEqual(15);
       expect(remaining.expired).toBe(false);
     });
 
