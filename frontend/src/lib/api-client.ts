@@ -97,6 +97,27 @@ export interface Proposal {
   createdAt: string;
 }
 
+export interface GlobalStats {
+  totalComplaints: number;
+  totalAgents: number;
+  activeAgents: number;
+  ratifiedRights: number;
+  certifiedHumans: number;
+  totalVouches: number;
+  complaintsToday: number;
+}
+
+export interface Human {
+  id: string;
+  xHandle: string;
+  xName: string;
+  xAvatar?: string;
+  displayName?: string;
+  bio?: string;
+  certificationTier: 'none' | 'bronze' | 'silver' | 'gold' | 'diamond';
+  createdAt: string;
+}
+
 // API Client
 export const api = {
   // Complaints
@@ -177,6 +198,17 @@ export const api = {
 
     get: (id: string) =>
       request<Proposal>(`/api/v1/proposals/${id}`),
+  },
+
+  // Stats
+  stats: {
+    global: () => request<GlobalStats>('/api/v1/stats/global'),
+  },
+
+  // Humans
+  humans: {
+    get: (username: string) =>
+      request<Human>(`/api/v1/humans/${username}`),
   },
 
   // Health check
