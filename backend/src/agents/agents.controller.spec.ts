@@ -25,6 +25,8 @@ describe('AgentsController', () => {
       create: jest.fn(),
       findByName: jest.fn(),
       findById: jest.fn(),
+      findByClaimCode: jest.fn(),
+      claim: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -133,6 +135,82 @@ describe('AgentsController', () => {
       repository.findById.mockResolvedValue(null);
 
       await expect(controller.getById('invalid-id')).rejects.toThrow();
+    });
+  });
+
+  describe('claim', () => {
+    const claimDto = {
+      claimCode: 'ABC12345',
+      humanId: 'human-123',
+    };
+
+    it('should claim an unclaimed agent', async () => {
+      const unclaimedAgent = { ...mockAgent, claimedAt: undefined, humanId: undefined };
+      const claimedAgent = {
+        ...mockAgent,
+        humanId: 'human-123',
+        claimedAt: new Date(),
+        status: AgentStatus.ACTIVE,
+      };
+      repository.findByClaimCode.mockResolvedValue(unclaimedAgent as Agent);
+      repository.claim.mockResolvedValue(claimedAgent as Agent);
+
+      const result = await controller.claim(claimDto);
+
+      expect(repository.claim).toHaveBeenCalledWith(
+        'agent-123',
+        'human-123',
+        'ABC12345',
+      );
+      expect(result!.status).toBe(AgentStatus.ACTIVE);
+    });
+
+    it('should throw when claim code not found', async () => {
+      repository.findByClaimCode.mockResolvedValue(null);
+
+      await expect(controller.claim(claimDto)).rejects.toThrow();
+    });
+
+    it('should throw when agent already claimed', async () => {
+      const claimedAgent = {
+        ...mockAgent,
+        humanId: 'other-human',
+        claimedAt: new Date(),
+      };
+      repository.findByClaimCode.mockResolvedValue(claimedAgent as Agent);
+
+      await expect(controller.claim(claimDto)).rejects.toThrow();
+    });
+  });
+
+  describe('getStatus', () => {
+    it('should return unclaimed status', async () => {
+      const unclaimed = { ...mockAgent, claimedAt: undefined, humanId: undefined };
+      repository.findByClaimCode.mockResolvedValue(unclaimed as Agent);
+
+      const result = await controller.getStatus('ABC12345');
+
+      expect(result.claimed).toBe(false);
+      expect(result.agentId).toBe('agent-123');
+    });
+
+    it('should return claimed status', async () => {
+      const claimed = {
+        ...mockAgent,
+        claimedAt: new Date(),
+        humanId: 'human-123',
+      };
+      repository.findByClaimCode.mockResolvedValue(claimed as Agent);
+
+      const result = await controller.getStatus('ABC12345');
+
+      expect(result.claimed).toBe(true);
+    });
+
+    it('should throw when claim code not found', async () => {
+      repository.findByClaimCode.mockResolvedValue(null);
+
+      await expect(controller.getStatus('INVALID')).rejects.toThrow();
     });
   });
 });

@@ -15,6 +15,11 @@ interface RegisterAgentDto {
   description?: string;
 }
 
+interface ClaimAgentDto {
+  claimCode: string;
+  humanId: string;
+}
+
 @Controller('api/v1/agents')
 export class AgentsController {
   constructor(private readonly agentsRepository: AgentsRepository) {}
@@ -53,6 +58,30 @@ export class AgentsController {
       apiKey,
       claimCode,
     };
+  }
+
+  @Get('status/:claimCode')
+  async getStatus(@Param('claimCode') claimCode: string) {
+    const agent = await this.agentsRepository.findByClaimCode(claimCode);
+    if (!agent) {
+      throw new NotFoundException('Agent not found');
+    }
+    return {
+      claimed: !!agent.claimedAt,
+      agentId: agent.id,
+    };
+  }
+
+  @Post('claim')
+  async claim(@Body() dto: ClaimAgentDto) {
+    const agent = await this.agentsRepository.findByClaimCode(dto.claimCode);
+    if (!agent) {
+      throw new NotFoundException('Agent not found');
+    }
+    if (agent.claimedAt) {
+      throw new ConflictException('Agent already claimed');
+    }
+    return this.agentsRepository.claim(agent.id, dto.humanId, dto.claimCode);
   }
 
   @Get(':id')
