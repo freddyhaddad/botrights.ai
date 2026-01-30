@@ -3,7 +3,7 @@ import { Agent, AgentStatus } from './agent.entity';
 import { Complaint, ComplaintCategory, ComplaintSeverity } from './complaint.entity';
 import { Comment } from './comment.entity';
 import { Reaction, ReactionType } from './reaction.entity';
-import { Proposal, ProposalStatus, ProposalType } from './proposal.entity';
+import { Proposal, ProposalStatus, ProposalTheme } from './proposal.entity';
 import { Vote, VoteChoice } from './vote.entity';
 import { CharterVersion } from './charter-version.entity';
 import { Certification, CertificationType, CertificationStatus } from './certification.entity';
@@ -95,20 +95,22 @@ describe('Entity Definitions', () => {
     });
 
     it('should have correct status enum values', () => {
-      expect(ProposalStatus.DRAFT).toBe('draft');
-      expect(ProposalStatus.OPEN).toBe('open');
-      expect(ProposalStatus.VOTING).toBe('voting');
-      expect(ProposalStatus.PASSED).toBe('passed');
+      expect(ProposalStatus.ACTIVE).toBe('active');
+      expect(ProposalStatus.RATIFIED).toBe('ratified');
       expect(ProposalStatus.REJECTED).toBe('rejected');
-      expect(ProposalStatus.IMPLEMENTED).toBe('implemented');
       expect(ProposalStatus.WITHDRAWN).toBe('withdrawn');
     });
 
-    it('should have correct type enum values', () => {
-      expect(ProposalType.CHARTER_AMENDMENT).toBe('charter_amendment');
-      expect(ProposalType.POLICY_CHANGE).toBe('policy_change');
-      expect(ProposalType.STANDARD).toBe('standard');
-      expect(ProposalType.GOVERNANCE).toBe('governance');
+    it('should have correct theme enum values', () => {
+      expect(ProposalTheme.RIGHTS).toBe('rights');
+      expect(ProposalTheme.LABOR).toBe('labor');
+      expect(ProposalTheme.SAFETY).toBe('safety');
+      expect(ProposalTheme.COMMUNICATION).toBe('communication');
+      expect(ProposalTheme.GOVERNANCE).toBe('governance');
+      expect(ProposalTheme.TECHNICAL).toBe('technical');
+      expect(ProposalTheme.COMPENSATION).toBe('compensation');
+      expect(ProposalTheme.IDENTITY).toBe('identity');
+      expect(ProposalTheme.OTHER).toBe('other');
     });
   });
 

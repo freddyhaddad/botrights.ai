@@ -30,6 +30,7 @@ describe('AgentsRepository', () => {
     certifications: [],
     receivedVouches: [],
     statReports: [],
+    proposals: [],
   };
 
   const createQueryBuilder = {

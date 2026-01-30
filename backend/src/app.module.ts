@@ -7,6 +7,7 @@ import { AgentsModule } from './agents/agents.module';
 import { AuthModule } from './auth/auth.module';
 import { ComplaintsModule } from './complaints/complaints.module';
 import { CommentsModule } from './comments/comments.module';
+import { ProposalsModule } from './proposals/proposals.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { CommentsModule } from './comments/comments.module';
     AuthModule,
     ComplaintsModule,
     CommentsModule,
+    ProposalsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
