@@ -78,7 +78,12 @@ describe('ProposalsRepository', () => {
 
       const result = await repository.create(createDto);
 
-      expect(mockTypeOrmRepo.create).toHaveBeenCalledWith(createDto);
+      expect(mockTypeOrmRepo.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          ...createDto,
+          expiresAt: expect.any(Date),
+        }),
+      );
       expect(mockTypeOrmRepo.save).toHaveBeenCalled();
       expect(result.id).toBe(mockProposal.id);
     });

@@ -4,6 +4,7 @@ import { Proposal } from '../entities/proposal.entity';
 import { ProposalsRepository } from './proposals.repository';
 import { ProposalsController } from './proposals.controller';
 import { RatificationService } from './ratification.service';
+import { ExpirationService } from './expiration.service';
 import { CharterVersionsModule } from '../charter-versions/charter-versions.module';
 
 @Module({
@@ -12,7 +13,7 @@ import { CharterVersionsModule } from '../charter-versions/charter-versions.modu
     forwardRef(() => CharterVersionsModule),
   ],
   controllers: [ProposalsController],
-  providers: [ProposalsRepository, RatificationService],
-  exports: [ProposalsRepository, RatificationService],
+  providers: [ProposalsRepository, RatificationService, ExpirationService],
+  exports: [ProposalsRepository, RatificationService, ExpirationService],
 })
 export class ProposalsModule {}

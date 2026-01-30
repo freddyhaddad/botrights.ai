@@ -11,8 +11,9 @@ import {
 import { ApiKeyGuard } from '../auth/guards/api-key.guard';
 import { CurrentAgent } from '../auth/decorators/current-agent.decorator';
 import { Agent } from '../entities/agent.entity';
-import { ProposalStatus, ProposalTheme } from '../entities/proposal.entity';
+import { Proposal, ProposalStatus, ProposalTheme } from '../entities/proposal.entity';
 import { ProposalsRepository } from './proposals.repository';
+import { ExpirationService } from './expiration.service';
 import { ProposalRateLimit } from '../rate-limit/rate-limit.guard';
 
 interface CreateProposalDto {
@@ -23,7 +24,17 @@ interface CreateProposalDto {
 
 @Controller('api/v1/proposals')
 export class ProposalsController {
-  constructor(private readonly proposalsRepository: ProposalsRepository) {}
+  constructor(
+    private readonly proposalsRepository: ProposalsRepository,
+    private readonly expirationService: ExpirationService,
+  ) {}
+
+  private addCountdown(proposal: Proposal) {
+    const countdown = proposal.expiresAt
+      ? this.expirationService.getTimeRemaining(proposal.expiresAt)
+      : null;
+    return { ...proposal, countdown };
+  }
 
   @Post()
   @UseGuards(ApiKeyGuard)
@@ -52,7 +63,7 @@ export class ProposalsController {
       theme: dto.theme,
     });
 
-    return proposal;
+    return this.addCountdown(proposal);
   }
 
   @Get()
@@ -91,7 +102,7 @@ export class ProposalsController {
     ]);
 
     return {
-      data: proposals,
+      data: proposals.map((p) => this.addCountdown(p)),
       meta: {
         total,
         limit,

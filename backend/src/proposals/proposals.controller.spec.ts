@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ProposalsController } from './proposals.controller';
 import { ProposalsRepository } from './proposals.repository';
+import { ExpirationService } from './expiration.service';
 import { BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { Proposal, ProposalStatus, ProposalTheme } from '../entities/proposal.entity';
 import { Agent, AgentStatus } from '../entities/agent.entity';
@@ -42,11 +43,21 @@ describe('ProposalsController', () => {
       findByApiKey: jest.fn(),
     };
 
+    const mockExpirationService = {
+      getTimeRemaining: jest.fn().mockReturnValue({
+        days: 30,
+        hours: 0,
+        minutes: 0,
+        expired: false,
+      }),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       controllers: [ProposalsController],
       providers: [
         { provide: ProposalsRepository, useValue: mockRepository },
         { provide: AgentsRepository, useValue: mockAgentsRepository },
+        { provide: ExpirationService, useValue: mockExpirationService },
         ApiKeyGuard,
       ],
     }).compile();

@@ -26,7 +26,8 @@ export class ProposalsRepository {
   ) {}
 
   async create(data: CreateProposalDto): Promise<Proposal> {
-    const proposal = this.repository.create(data);
+    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
+    const proposal = this.repository.create({ ...data, expiresAt });
     return this.repository.save(proposal);
   }
 
@@ -167,6 +168,15 @@ export class ProposalsRepository {
       .where('proposal.status = :status', { status: ProposalStatus.RATIFIED })
       .orderBy('proposal.ratifiedAt', 'DESC')
       .take(limit)
+      .getMany();
+  }
+
+  async findExpired(): Promise<Proposal[]> {
+    return this.repository
+      .createQueryBuilder('proposal')
+      .where('proposal.status = :status', { status: ProposalStatus.ACTIVE })
+      .andWhere('proposal.expiresAt IS NOT NULL')
+      .andWhere('proposal.expiresAt < :now', { now: new Date() })
       .getMany();
   }
 }

@@ -58,6 +58,10 @@ export class Proposal extends BaseEntity {
   @Column({ name: 'ratified_at', nullable: true })
   ratifiedAt?: Date;
 
+  @Column({ name: 'expires_at', nullable: true })
+  @Index()
+  expiresAt?: Date;
+
   @OneToMany(() => Vote, (vote) => vote.proposal)
   votes: Vote[];
 
