@@ -231,6 +231,25 @@ export const api = {
       request<Human>(`/api/v1/humans/${username}`),
   },
 
+  // Leaderboard
+  leaderboard: {
+    get: (params?: {
+      limit?: number;
+      offset?: number;
+      tier?: string;
+    }) => {
+      const searchParams = new URLSearchParams();
+      if (params?.limit) searchParams.set('limit', params.limit.toString());
+      if (params?.offset) searchParams.set('offset', params.offset.toString());
+      if (params?.tier) searchParams.set('tier', params.tier);
+
+      const query = searchParams.toString();
+      return request<PaginatedResponse<Human & { agentCount: number; vouchCount: number }>>(
+        `/api/v1/leaderboard${query ? `?${query}` : ''}`,
+      );
+    },
+  },
+
   // Charter
   charter: {
     current: () => request<CharterVersion>('/api/v1/charter'),
