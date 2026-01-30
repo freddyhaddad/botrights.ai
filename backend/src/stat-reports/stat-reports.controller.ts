@@ -1,6 +1,7 @@
 import {
   Controller,
   Post,
+  Get,
   Body,
   UseGuards,
   BadRequestException,
@@ -68,5 +69,10 @@ export class StatReportsController {
     });
 
     return report;
+  }
+
+  @Get('global')
+  async getGlobalStats() {
+    return this.statReportsRepository.getGlobalStats();
   }
 }

@@ -35,6 +35,7 @@ describe('StatReportsController', () => {
     const mockRepository = {
       upsert: jest.fn(),
       getLatest: jest.fn(),
+      getGlobalStats: jest.fn(),
     };
 
     const mockAgentsRepository = {
@@ -106,6 +107,23 @@ describe('StatReportsController', () => {
       await expect(controller.report(reportDto, mockAgent as Agent)).rejects.toThrow(
         BadRequestException,
       );
+    });
+  });
+
+  describe('getGlobalStats', () => {
+    it('should return aggregated global stats', async () => {
+      repository.getGlobalStats.mockResolvedValue({
+        totalAgents: 100,
+        averageInteractions: 500,
+        averageSuccessRate: 0.95,
+        averageHappiness: 0.85,
+        totalReports: 1000,
+      });
+
+      const result = await controller.getGlobalStats();
+
+      expect(result.totalAgents).toBe(100);
+      expect(result.averageSuccessRate).toBe(0.95);
     });
   });
 });
