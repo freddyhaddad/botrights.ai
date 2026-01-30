@@ -27,7 +27,6 @@ describe('AgentsRepository', () => {
     complaints: [],
     comments: [],
     reactions: [],
-    certifications: [],
     receivedVouches: [],
     statReports: [],
     proposals: [],

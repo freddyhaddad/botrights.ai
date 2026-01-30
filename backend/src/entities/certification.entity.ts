@@ -1,56 +1,54 @@
 import { Entity, Column, ManyToOne, JoinColumn, Index } from 'typeorm';
 import { BaseEntity } from './base.entity';
-import { Agent } from './agent.entity';
-
-export enum CertificationType {
-  CHARTER_COMPLIANCE = 'charter_compliance',
-  SAFETY = 'safety',
-  ETHICS = 'ethics',
-  PERFORMANCE = 'performance',
-  SPECIALIZED = 'specialized',
-}
+import { Human, CertificationTier } from './human.entity';
+export { CertificationTier };
 
 export enum CertificationStatus {
-  ACTIVE = 'active',
-  EXPIRED = 'expired',
-  REVOKED = 'revoked',
   PENDING = 'pending',
+  APPROVED = 'approved',
+  REJECTED = 'rejected',
+}
+
+export interface ChecklistItem {
+  id: string;
+  description: string;
+  completed: boolean;
+  completedAt?: string;
+  verifiedBy?: string;
 }
 
 @Entity('certifications')
 export class Certification extends BaseEntity {
-  @Column({ type: 'enum', enum: CertificationType })
-  type: CertificationType;
+  @Column({ name: 'human_id' })
+  @Index()
+  humanId: string;
+
+  @ManyToOne(() => Human, (human) => human.certifications, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'human_id' })
+  human: Human;
+
+  @Column({ type: 'enum', enum: CertificationTier })
+  @Index()
+  tier: CertificationTier;
 
   @Column({ type: 'enum', enum: CertificationStatus, default: CertificationStatus.PENDING })
   @Index()
   status: CertificationStatus;
 
-  @Column({ name: 'agent_id' })
-  @Index()
-  agentId: string;
+  @Column({ type: 'jsonb', default: [] })
+  checklist: ChecklistItem[];
 
-  @ManyToOne(() => Agent, (agent) => agent.certifications, {
-    onDelete: 'CASCADE',
-  })
-  @JoinColumn({ name: 'agent_id' })
-  agent: Agent;
+  @Column({ name: 'vouch_count', type: 'integer', default: 0 })
+  vouchCount: number;
 
-  @Column({ name: 'issued_at' })
-  issuedAt: Date;
+  @Column({ name: 'approved_at', nullable: true })
+  approvedAt?: Date;
 
-  @Column({ name: 'expires_at', nullable: true })
-  expiresAt?: Date;
+  @Column({ name: 'rejected_at', nullable: true })
+  rejectedAt?: Date;
 
-  @Column({ name: 'revoked_at', nullable: true })
-  revokedAt?: Date;
-
-  @Column({ type: 'text', nullable: true })
-  details?: string;
-
-  @Column({ type: 'jsonb', nullable: true })
-  evidence?: Record<string, unknown>;
-
-  @Column({ name: 'charter_version_id', nullable: true })
-  charterVersionId?: string;
+  @Column({ name: 'rejection_reason', type: 'text', nullable: true })
+  rejectionReason?: string;
 }

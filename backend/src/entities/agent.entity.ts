@@ -11,7 +11,6 @@ import { Human } from './human.entity';
 import { Complaint } from './complaint.entity';
 import { Comment } from './comment.entity';
 import { Reaction } from './reaction.entity';
-import { Certification } from './certification.entity';
 import { Vouch } from './vouch.entity';
 import { StatReport } from './stat-report.entity';
 import { Proposal } from './proposal.entity';
@@ -82,9 +81,6 @@ export class Agent extends BaseEntity {
 
   @OneToMany(() => Reaction, (reaction) => reaction.agent)
   reactions: Reaction[];
-
-  @OneToMany(() => Certification, (cert) => cert.agent)
-  certifications: Certification[];
 
   @OneToMany(() => Vouch, (vouch) => vouch.agent)
   receivedVouches: Vouch[];

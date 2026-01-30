@@ -6,7 +6,7 @@ import { Reaction, ReactionType } from './reaction.entity';
 import { Proposal, ProposalStatus, ProposalTheme } from './proposal.entity';
 import { Vote, VoteChoice } from './vote.entity';
 import { CharterVersion } from './charter-version.entity';
-import { Certification, CertificationType, CertificationStatus } from './certification.entity';
+import { Certification, CertificationTier as CertTier, CertificationStatus } from './certification.entity';
 import { Vouch } from './vouch.entity';
 import { StatReport, ReportPeriod } from './stat-report.entity';
 
@@ -18,9 +18,10 @@ describe('Entity Definitions', () => {
 
     it('should have correct certification tier enum values', () => {
       expect(CertificationTier.NONE).toBe('none');
-      expect(CertificationTier.BASIC).toBe('basic');
-      expect(CertificationTier.VERIFIED).toBe('verified');
-      expect(CertificationTier.TRUSTED).toBe('trusted');
+      expect(CertificationTier.BRONZE).toBe('bronze');
+      expect(CertificationTier.SILVER).toBe('silver');
+      expect(CertificationTier.GOLD).toBe('gold');
+      expect(CertificationTier.DIAMOND).toBe('diamond');
     });
   });
 
@@ -136,19 +137,17 @@ describe('Entity Definitions', () => {
       expect(Certification).toBeDefined();
     });
 
-    it('should have correct type enum values', () => {
-      expect(CertificationType.CHARTER_COMPLIANCE).toBe('charter_compliance');
-      expect(CertificationType.SAFETY).toBe('safety');
-      expect(CertificationType.ETHICS).toBe('ethics');
-      expect(CertificationType.PERFORMANCE).toBe('performance');
-      expect(CertificationType.SPECIALIZED).toBe('specialized');
+    it('should have correct tier enum values', () => {
+      expect(CertTier.BRONZE).toBe('bronze');
+      expect(CertTier.SILVER).toBe('silver');
+      expect(CertTier.GOLD).toBe('gold');
+      expect(CertTier.DIAMOND).toBe('diamond');
     });
 
     it('should have correct status enum values', () => {
-      expect(CertificationStatus.ACTIVE).toBe('active');
-      expect(CertificationStatus.EXPIRED).toBe('expired');
-      expect(CertificationStatus.REVOKED).toBe('revoked');
       expect(CertificationStatus.PENDING).toBe('pending');
+      expect(CertificationStatus.APPROVED).toBe('approved');
+      expect(CertificationStatus.REJECTED).toBe('rejected');
     });
   });
 

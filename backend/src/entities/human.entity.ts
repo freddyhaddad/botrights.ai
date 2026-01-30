@@ -4,12 +4,14 @@ import { Agent } from './agent.entity';
 import { Comment } from './comment.entity';
 import { Reaction } from './reaction.entity';
 import { Vouch } from './vouch.entity';
+import { Certification } from './certification.entity';
 
 export enum CertificationTier {
   NONE = 'none',
-  BASIC = 'basic',
-  VERIFIED = 'verified',
-  TRUSTED = 'trusted',
+  BRONZE = 'bronze',
+  SILVER = 'silver',
+  GOLD = 'gold',
+  DIAMOND = 'diamond',
 }
 
 @Entity('humans')
@@ -78,4 +80,7 @@ export class Human extends BaseEntity {
 
   @OneToMany(() => Vouch, (vouch) => vouch.voucher)
   givenVouches: Vouch[];
+
+  @OneToMany(() => Certification, (cert) => cert.human)
+  certifications: Certification[];
 }

@@ -30,6 +30,7 @@ describe('HumansRepository', () => {
     comments: [],
     reactions: [],
     givenVouches: [],
+    certifications: [],
   };
 
   const createQueryBuilder = {
@@ -183,11 +184,11 @@ describe('HumansRepository', () => {
     it('should update certification tier and timestamp', async () => {
       const result = await repository.updateCertification(
         'uuid-1',
-        CertificationTier.VERIFIED,
+        CertificationTier.SILVER,
       );
 
       expect(mockTypeOrmRepo.update).toHaveBeenCalledWith('uuid-1', {
-        certificationTier: CertificationTier.VERIFIED,
+        certificationTier: CertificationTier.SILVER,
         certifiedAt: expect.any(Date),
       });
       expect(result).toEqual(mockHuman);

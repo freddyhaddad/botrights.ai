@@ -10,6 +10,7 @@ import { CommentsModule } from './comments/comments.module';
 import { ProposalsModule } from './proposals/proposals.module';
 import { VotesModule } from './votes/votes.module';
 import { CharterVersionsModule } from './charter-versions/charter-versions.module';
+import { CertificationsModule } from './certifications/certifications.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { CharterVersionsModule } from './charter-versions/charter-versions.modul
     ProposalsModule,
     VotesModule,
     CharterVersionsModule,
+    CertificationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
