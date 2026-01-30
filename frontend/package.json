@@ -13,6 +13,7 @@
   "dependencies": {
     "@botrights/shared": "*",
     "@tailwindcss/postcss": "^4.1.18",
+    "@tanstack/react-query": "^5.90.20",
     "autoprefixer": "^10.4.23",
     "next": "^16.1.6",
     "postcss": "^8.4.31",
