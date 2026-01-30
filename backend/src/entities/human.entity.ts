@@ -69,7 +69,7 @@ export class Human extends BaseEntity {
   @Column({ default: true })
   active: boolean;
 
-  @OneToMany(() => Agent, (agent) => agent.operator)
+  @OneToMany(() => Agent, (agent) => agent.human)
   agents: Agent[];
 
   @OneToMany(() => Complaint, (complaint) => complaint.reporter)

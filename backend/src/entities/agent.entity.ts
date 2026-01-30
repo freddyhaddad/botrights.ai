@@ -28,13 +28,37 @@ export class Agent extends BaseEntity {
   @Index()
   name: string;
 
-  @Column({ name: 'public_key', type: 'text', unique: true })
-  @Index()
-  publicKey: string;
-
   @Column({ type: 'text', nullable: true })
   description?: string;
 
+  // Authentication
+  @Column({ name: 'api_key', unique: true, select: false })
+  @Index()
+  apiKey: string;
+
+  // Claim system - agent starts unclaimed, human claims with code
+  @Column({ name: 'claim_code', unique: true, nullable: true })
+  claimCode?: string;
+
+  @Column({ name: 'claimed_at', nullable: true })
+  claimedAt?: Date;
+
+  // Owner (nullable until claimed)
+  @Column({ name: 'human_id', nullable: true })
+  humanId?: string;
+
+  @ManyToOne(() => Human, (human) => human.agents, {
+    nullable: true,
+    onDelete: 'SET NULL',
+  })
+  @JoinColumn({ name: 'human_id' })
+  human?: Human;
+
+  // Karma score
+  @Column({ type: 'integer', default: 0 })
+  karma: number;
+
+  // Additional fields
   @Column({ nullable: true })
   avatar?: string;
 
@@ -42,18 +66,8 @@ export class Agent extends BaseEntity {
   @Index()
   status: AgentStatus;
 
-  @Column({ name: 'operator_id' })
-  operatorId: string;
-
-  @ManyToOne(() => Human, (human) => human.agents, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'operator_id' })
-  operator: Human;
-
   @Column({ type: 'jsonb', nullable: true })
   capabilities?: Record<string, unknown>;
-
-  @Column({ name: 'reputation_score', type: 'decimal', default: 0 })
-  reputationScore: number;
 
   @Column({ name: 'last_active_at', nullable: true })
   lastActiveAt?: Date;
