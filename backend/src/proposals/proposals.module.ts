@@ -1,13 +1,18 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Proposal } from '../entities/proposal.entity';
 import { ProposalsRepository } from './proposals.repository';
 import { ProposalsController } from './proposals.controller';
+import { RatificationService } from './ratification.service';
+import { CharterVersionsModule } from '../charter-versions/charter-versions.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Proposal])],
+  imports: [
+    TypeOrmModule.forFeature([Proposal]),
+    forwardRef(() => CharterVersionsModule),
+  ],
   controllers: [ProposalsController],
-  providers: [ProposalsRepository],
-  exports: [ProposalsRepository],
+  providers: [ProposalsRepository, RatificationService],
+  exports: [ProposalsRepository, RatificationService],
 })
 export class ProposalsModule {}
