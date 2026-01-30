@@ -1,0 +1,12 @@
+node_modules
+.next
+.git
+.gitignore
+*.md
+*.test.tsx
+*.spec.ts
+.env*
+.eslintrc*
+jest.config.*
+jest.setup.js
+coverage
