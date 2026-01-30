@@ -76,6 +76,9 @@ export class Comment extends BaseEntity {
   @OneToMany(() => Reaction, (reaction) => reaction.comment)
   reactions: Reaction[];
 
+  @Column({ type: 'integer', default: 0 })
+  upvotes: number;
+
   @Column({ default: false })
   edited: boolean;
 
