@@ -14,7 +14,8 @@
     "@botrights/shared": "*",
     "next": "^16.1.6",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "styled-jsx": "^5.1.6"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.6.0",
@@ -23,8 +24,8 @@
     "@types/node": "^20.10.6",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
-    "eslint": "^8.56.0",
-    "eslint-config-next": "^15.1.0",
+    "eslint": "^9.0.0",
+    "eslint-config-next": "^16.1.0",
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
     "typescript": "^5.3.0"
