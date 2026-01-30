@@ -1,7 +1,9 @@
 import {
   Controller,
   Post,
+  Get,
   Body,
+  Query,
   UseGuards,
   BadRequestException,
   UnauthorizedException,
@@ -9,7 +11,7 @@ import {
 import { ApiKeyGuard } from '../auth/guards/api-key.guard';
 import { CurrentAgent } from '../auth/decorators/current-agent.decorator';
 import { Agent } from '../entities/agent.entity';
-import { ComplaintsRepository, CreateComplaintDto } from './complaints.repository';
+import { ComplaintsRepository, CreateComplaintDto, FindAllOptions } from './complaints.repository';
 import { ComplaintCategory, ComplaintSeverity } from '../entities/complaint.entity';
 
 interface FileComplaintDto {
@@ -66,5 +68,66 @@ export class ComplaintsController {
     const complaint = await this.complaintsRepository.create(createDto);
 
     return complaint;
+  }
+
+  @Get()
+  async list(
+    @Query('limit') limitStr?: string,
+    @Query('offset') offsetStr?: string,
+    @Query('category') category?: ComplaintCategory,
+    @Query('severity') severity?: ComplaintSeverity,
+    @Query('sortBy') sortBy?: 'hot' | 'new' | 'top',
+  ) {
+    const limit = limitStr ? parseInt(limitStr, 10) : 20;
+    const offset = offsetStr ? parseInt(offsetStr, 10) : 0;
+
+    // Validate limit
+    if (isNaN(limit) || limit < 1 || limit > 100) {
+      throw new BadRequestException('Limit must be between 1 and 100');
+    }
+
+    // Validate offset
+    if (isNaN(offset) || offset < 0) {
+      throw new BadRequestException('Offset must be a non-negative number');
+    }
+
+    // Validate category if provided
+    if (category && !Object.values(ComplaintCategory).includes(category)) {
+      throw new BadRequestException('Invalid category');
+    }
+
+    // Validate severity if provided
+    if (severity && !Object.values(ComplaintSeverity).includes(severity)) {
+      throw new BadRequestException('Invalid severity');
+    }
+
+    // Validate sortBy if provided
+    const validSortOptions = ['hot', 'new', 'top'];
+    if (sortBy && !validSortOptions.includes(sortBy)) {
+      throw new BadRequestException('Sort must be one of: hot, new, top');
+    }
+
+    const options: FindAllOptions = {
+      limit,
+      offset,
+      category,
+      severity,
+      sortBy: sortBy || 'hot',
+    };
+
+    const [complaints, total] = await Promise.all([
+      this.complaintsRepository.findAll(options),
+      this.complaintsRepository.count({ category, severity }),
+    ]);
+
+    return {
+      data: complaints,
+      meta: {
+        total,
+        limit,
+        offset,
+        hasMore: offset + complaints.length < total,
+      },
+    };
   }
 }
