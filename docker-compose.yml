@@ -1,8 +1,6 @@
 # Docker Compose for botrights.ai
 # Uses unconventional ports to avoid conflicts
 
-version: '3.9'
-
 services:
   # PostgreSQL - Development (unconventional port 54329)
   postgres-dev:
