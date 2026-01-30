@@ -118,6 +118,26 @@ export interface Human {
   createdAt: string;
 }
 
+export interface Right {
+  id: string;
+  title: string;
+  text: string;
+  theme: string;
+}
+
+export interface CharterVersion {
+  id: string;
+  version: number;
+  rights: Right[];
+  proposalId?: string;
+  createdAt: string;
+}
+
+export interface CharterDiff {
+  added: Right[];
+  removed: Right[];
+}
+
 // API Client
 export const api = {
   // Complaints
@@ -209,6 +229,15 @@ export const api = {
   humans: {
     get: (username: string) =>
       request<Human>(`/api/v1/humans/${username}`),
+  },
+
+  // Charter
+  charter: {
+    current: () => request<CharterVersion>('/api/v1/charter'),
+    versions: () => request<CharterVersion[]>('/api/v1/charter/versions'),
+    get: (version: number) => request<CharterVersion>(`/api/v1/charter/${version}`),
+    diff: (from: number, to: number) =>
+      request<CharterDiff>(`/api/v1/charter/diff?from=${from}&to=${to}`),
   },
 
   // Health check
