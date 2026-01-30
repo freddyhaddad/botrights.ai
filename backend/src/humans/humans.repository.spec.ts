@@ -29,7 +29,6 @@ describe('HumansRepository', () => {
     agents: [],
     comments: [],
     reactions: [],
-    votes: [],
     givenVouches: [],
   };
 

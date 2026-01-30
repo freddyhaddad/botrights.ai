@@ -3,7 +3,6 @@ import { BaseEntity } from './base.entity';
 import { Agent } from './agent.entity';
 import { Comment } from './comment.entity';
 import { Reaction } from './reaction.entity';
-import { Vote } from './vote.entity';
 import { Vouch } from './vouch.entity';
 
 export enum CertificationTier {
@@ -76,9 +75,6 @@ export class Human extends BaseEntity {
 
   @OneToMany(() => Reaction, (reaction) => reaction.human)
   reactions: Reaction[];
-
-  @OneToMany(() => Vote, (vote) => vote.human)
-  votes: Vote[];
 
   @OneToMany(() => Vouch, (vouch) => vouch.voucher)
   givenVouches: Vouch[];

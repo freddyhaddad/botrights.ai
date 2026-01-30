@@ -8,6 +8,7 @@ import { AuthModule } from './auth/auth.module';
 import { ComplaintsModule } from './complaints/complaints.module';
 import { CommentsModule } from './comments/comments.module';
 import { ProposalsModule } from './proposals/proposals.module';
+import { VotesModule } from './votes/votes.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { ProposalsModule } from './proposals/proposals.module';
     ComplaintsModule,
     CommentsModule,
     ProposalsModule,
+    VotesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

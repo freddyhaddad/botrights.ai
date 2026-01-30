@@ -122,7 +122,6 @@ describe('Entity Definitions', () => {
     it('should have correct choice enum values', () => {
       expect(VoteChoice.FOR).toBe('for');
       expect(VoteChoice.AGAINST).toBe('against');
-      expect(VoteChoice.ABSTAIN).toBe('abstain');
     });
   });
 

@@ -31,6 +31,7 @@ describe('AgentsRepository', () => {
     receivedVouches: [],
     statReports: [],
     proposals: [],
+    votes: [],
   };
 
   const createQueryBuilder = {

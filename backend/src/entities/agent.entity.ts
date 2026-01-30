@@ -15,6 +15,7 @@ import { Certification } from './certification.entity';
 import { Vouch } from './vouch.entity';
 import { StatReport } from './stat-report.entity';
 import { Proposal } from './proposal.entity';
+import { Vote } from './vote.entity';
 
 export enum AgentStatus {
   PENDING = 'pending',
@@ -93,4 +94,7 @@ export class Agent extends BaseEntity {
 
   @OneToMany(() => Proposal, (proposal) => proposal.agent)
   proposals: Proposal[];
+
+  @OneToMany(() => Vote, (vote) => vote.agent)
+  votes: Vote[];
 }

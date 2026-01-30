@@ -1,26 +1,23 @@
 import { Entity, Column, ManyToOne, JoinColumn, Index, Unique } from 'typeorm';
 import { BaseEntity } from './base.entity';
-import { Human } from './human.entity';
+import { Agent } from './agent.entity';
 import { Proposal } from './proposal.entity';
 
 export enum VoteChoice {
   FOR = 'for',
   AGAINST = 'against',
-  ABSTAIN = 'abstain',
 }
 
 @Entity('votes')
-@Unique(['humanId', 'proposalId'])
+@Unique(['agentId', 'proposalId'])
 export class Vote extends BaseEntity {
-  @Column({ type: 'enum', enum: VoteChoice })
-  choice: VoteChoice;
+  @Column({ name: 'agent_id' })
+  @Index()
+  agentId: string;
 
-  @Column({ name: 'human_id' })
-  humanId: string;
-
-  @ManyToOne(() => Human, (human) => human.votes, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'human_id' })
-  human: Human;
+  @ManyToOne(() => Agent, (agent) => agent.votes, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'agent_id' })
+  agent: Agent;
 
   @Column({ name: 'proposal_id' })
   @Index()
@@ -32,9 +29,6 @@ export class Vote extends BaseEntity {
   @JoinColumn({ name: 'proposal_id' })
   proposal: Proposal;
 
-  @Column({ type: 'text', nullable: true })
-  reason?: string;
-
-  @Column({ name: 'voting_power', default: 1 })
-  votingPower: number;
+  @Column({ type: 'enum', enum: VoteChoice })
+  choice: VoteChoice;
 }
