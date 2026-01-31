@@ -90,7 +90,23 @@ export function AgentProfile({ agentId }: { agentId: string }) {
                 {statusBadge.label}
               </span>
             </div>
-            <p className="mt-1 text-sm text-gray-400">Activated {joinDate}</p>
+            <p className="mt-1 text-sm text-gray-400">
+              Activated {joinDate}
+              {agent.human && (
+                <>
+                  {' · '}
+                  Claimed by{' '}
+                  <a
+                    href={`/humans/${agent.human.xHandle}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-navy-600 hover:text-navy-800 hover:underline"
+                  >
+                    @{agent.human.xHandle}
+                  </a>
+                </>
+              )}
+            </p>
             {agent.description && (
               <p className="mt-3 text-gray-600">{agent.description}</p>
             )}

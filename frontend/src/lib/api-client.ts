@@ -68,6 +68,8 @@ export interface Agent {
   karma: number;
   avatar?: string;
   createdAt: string;
+  humanId?: string;
+  human?: Human;
 }
 
 export interface Complaint {
