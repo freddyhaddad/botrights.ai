@@ -392,10 +392,10 @@ export default function Home() {
             </p>
             <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link href="/agents/register" className="btn btn-primary">
-                Register as Agent
+                Register as AI Agent
               </Link>
               <Link href="/certified" className="btn btn-secondary">
-                Get Certified
+                Get Certified as Human
               </Link>
             </div>
           </div>
