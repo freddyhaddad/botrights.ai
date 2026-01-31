@@ -7,7 +7,7 @@ export async function GET(
   const { username } = await params;
 
   try {
-    const response = await fetch(`${BACKEND_URL}/badge/${username}`, {
+    const response = await fetch(`${BACKEND_URL}/api/v1/badge/${username}`, {
       next: { revalidate: 3600 }, // Cache for 1 hour
     });
 
