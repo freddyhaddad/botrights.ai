@@ -18,8 +18,12 @@ async function bootstrap() {
   );
   
   // Enable CORS for frontend
+  const corsOrigins = process.env.CORS_ORIGINS 
+    ? process.env.CORS_ORIGINS.split(',') 
+    : ['http://localhost:3077'];
+  
   app.enableCors({
-    origin: ['http://localhost:3077'],
+    origin: corsOrigins,
     credentials: true,
   });
   
