@@ -16,6 +16,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
             url: databaseUrl,
             entities: [__dirname + '/../entities/*.entity{.ts,.js}'],
             migrations: [__dirname + '/migrations/*{.ts,.js}'],
+            migrationsRun: true, // Auto-run migrations on startup
             synchronize: configService.get('DB_SYNCHRONIZE', 'false') === 'true',
             logging: configService.get('DB_LOGGING', 'false') === 'true',
             ssl: configService.get('NODE_ENV') === 'production' ? { rejectUnauthorized: false } : false,
