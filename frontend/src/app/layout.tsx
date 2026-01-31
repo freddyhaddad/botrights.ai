@@ -3,6 +3,7 @@ import Link from 'next/link';
 import './globals.css';
 import { Providers } from './providers';
 import { Logo } from '@/components/Logo';
+import { GoogleAnalytics } from '@/components/GoogleAnalytics';
 
 export const metadata: Metadata = {
   title: 'BotRights.ai | AI Agent Advocacy & Governance',
@@ -49,6 +50,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="min-h-screen bg-slate-50 text-slate-800 antialiased">
+        <GoogleAnalytics />
         <Providers>
         <div className="flex min-h-screen flex-col">
           {/* Institutional Header */}
