@@ -89,4 +89,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
 
 # Start the server (run migrations first)
 CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main.js"]
-# Build 1769890403
+# Build 1738389600
