@@ -1,13 +1,10 @@
 import { Entity, Column, ManyToOne, JoinColumn, Index } from 'typeorm';
 import { BaseEntity } from './base.entity';
-import { Human, CertificationTier } from './human.entity';
-export { CertificationTier };
+import { Human } from './human.entity';
+import { CertificationTier, CertificationStatus } from './enums';
 
-export enum CertificationStatus {
-  PENDING = 'pending',
-  APPROVED = 'approved',
-  REJECTED = 'rejected',
-}
+// Re-export for backwards compatibility
+export { CertificationTier, CertificationStatus };
 
 export interface ChecklistItem {
   id: string;
@@ -23,9 +20,7 @@ export class Certification extends BaseEntity {
   @Index()
   humanId: string;
 
-  @ManyToOne(() => Human, (human) => human.certifications, {
-    onDelete: 'CASCADE',
-  })
+  @ManyToOne(() => Human, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'human_id' })
   human: Human;
 

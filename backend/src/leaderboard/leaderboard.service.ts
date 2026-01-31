@@ -71,8 +71,9 @@ export class LeaderboardService {
     }
 
     // Sort by tier (diamond first), then by vouches, then by certification date
+    // Use snake_case for raw SQL in CASE statement
     query.orderBy(
-      `CASE human.certificationTier
+      `CASE human.certification_tier
         WHEN 'diamond' THEN 4
         WHEN 'gold' THEN 3
         WHEN 'silver' THEN 2
@@ -80,8 +81,8 @@ export class LeaderboardService {
         ELSE 0 END`,
       'DESC',
     );
-    query.addOrderBy('vouchCount', 'DESC');
-    query.addOrderBy('human.certifiedAt', 'ASC');
+    query.addOrderBy('"vouchCount"', 'DESC');
+    query.addOrderBy('human.certified_at', 'ASC');
 
     // Get total count
     const countQuery = this.humanRepository

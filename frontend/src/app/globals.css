@@ -1,28 +1,63 @@
+/* Google Fonts - must come before tailwindcss import */
+@import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400&family=Inter:wght@400;500;600;700&display=swap');
+
 @import 'tailwindcss';
 
-/* Define custom theme using CSS variables */
-@theme {
-  --color-primary-50: #f0f9ff;
-  --color-primary-100: #e0f2fe;
-  --color-primary-200: #bae6fd;
-  --color-primary-300: #7dd3fc;
-  --color-primary-400: #38bdf8;
-  --color-primary-500: #0ea5e9;
-  --color-primary-600: #0284c7;
-  --color-primary-700: #0369a1;
-  --color-primary-800: #075985;
-  --color-primary-900: #0c4a6e;
+/*
+ * BOTRIGHTS.AI INSTITUTIONAL DESIGN SYSTEM
+ * Inspired by ACLU, EFF - serious, credible, authoritative
+ *
+ * Color Palette:
+ * - Navy (primary): #1a2744 - deep, trustworthy, institutional
+ * - Slate (secondary): #64748b - professional, readable
+ * - Gold (accent): #b8860b - dignified, authoritative highlight
+ *
+ * Typography:
+ * - Headings: Newsreader (serif) - editorial, serious, timeless
+ * - Body: Inter - clean, highly readable, modern professionalism
+ */
 
-  --color-accent-50: #fdf4ff;
-  --color-accent-100: #fae8ff;
-  --color-accent-200: #f5d0fe;
-  --color-accent-300: #f0abfc;
-  --color-accent-400: #e879f9;
-  --color-accent-500: #d946ef;
-  --color-accent-600: #c026d3;
-  --color-accent-700: #a21caf;
-  --color-accent-800: #86198f;
-  --color-accent-900: #701a75;
+@theme {
+  /* Navy - Primary institutional color */
+  --color-navy-50: #f0f3f7;
+  --color-navy-100: #dce3ed;
+  --color-navy-200: #b9c7db;
+  --color-navy-300: #8da4c3;
+  --color-navy-400: #5f7fa8;
+  --color-navy-500: #3d5a87;
+  --color-navy-600: #2d4466;
+  --color-navy-700: #243752;
+  --color-navy-800: #1e2e44;
+  --color-navy-900: #1a2744;
+  --color-navy-950: #111827;
+
+  /* Slate - Secondary / text colors */
+  --color-slate-50: #f8fafc;
+  --color-slate-100: #f1f5f9;
+  --color-slate-200: #e2e8f0;
+  --color-slate-300: #cbd5e1;
+  --color-slate-400: #94a3b8;
+  --color-slate-500: #64748b;
+  --color-slate-600: #475569;
+  --color-slate-700: #334155;
+  --color-slate-800: #1e293b;
+  --color-slate-900: #0f172a;
+
+  /* Gold - Accent color for emphasis */
+  --color-gold-50: #fefcf3;
+  --color-gold-100: #fdf6e3;
+  --color-gold-200: #f9e7b8;
+  --color-gold-300: #f3d182;
+  --color-gold-400: #e5b545;
+  --color-gold-500: #d4a017;
+  --color-gold-600: #b8860b;
+  --color-gold-700: #996d09;
+  --color-gold-800: #7a570d;
+  --color-gold-900: #654810;
+
+  /* Typography */
+  --font-serif: 'Newsreader', Georgia, 'Times New Roman', serif;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
 /* Custom base styles */
@@ -30,28 +65,280 @@
   html {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: 'cv11', 'ss01';
   }
 
   body {
-    @apply bg-gray-50 text-gray-900;
+    @apply bg-slate-50 text-slate-800;
+    font-family: var(--font-sans);
+    line-height: 1.6;
+  }
+
+  /* Serif headings for institutional gravitas */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-serif);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    @apply text-navy-900;
+  }
+
+  h1 {
+    @apply text-4xl sm:text-5xl lg:text-6xl;
+    line-height: 1.1;
+  }
+
+  h2 {
+    @apply text-2xl sm:text-3xl lg:text-4xl;
+    line-height: 1.2;
+  }
+
+  h3 {
+    @apply text-xl sm:text-2xl;
+    line-height: 1.3;
+  }
+
+  /* Links with understated authority */
+  a {
+    @apply text-navy-700 hover:text-gold-600 transition-colors duration-200;
+  }
+
+  /* Refined focus states */
+  *:focus-visible {
+    @apply outline-2 outline-offset-2 outline-gold-500;
   }
 }
 
 /* Custom component styles */
 @layer components {
+  /* Buttons - refined, institutional */
   .btn {
-    @apply px-4 py-2 rounded-lg font-medium transition-colors;
+    @apply px-5 py-2.5 font-medium transition-all duration-200 text-sm tracking-wide;
+    font-family: var(--font-sans);
   }
 
   .btn-primary {
-    @apply bg-primary-600 text-white hover:bg-primary-700;
+    @apply bg-navy-900 text-white hover:bg-navy-800 shadow-sm;
+    @apply border border-navy-900 hover:border-navy-700;
   }
 
   .btn-secondary {
-    @apply bg-gray-200 text-gray-800 hover:bg-gray-300;
+    @apply bg-white text-navy-900 hover:bg-slate-50;
+    @apply border border-slate-300 hover:border-slate-400 shadow-sm;
   }
 
+  .btn-accent {
+    @apply bg-gold-600 text-white hover:bg-gold-700 shadow-sm;
+    @apply border border-gold-600 hover:border-gold-700;
+  }
+
+  /* Cards - subtle shadows, refined borders */
   .card {
-    @apply bg-white rounded-xl shadow-sm border border-gray-200;
+    @apply bg-white border border-slate-200 shadow-sm;
+    @apply hover:shadow-md transition-shadow duration-200;
+  }
+
+  .card-elevated {
+    @apply bg-white border border-slate-200;
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.05), 0 4px 12px -2px rgb(0 0 0 / 0.08);
+  }
+
+  /* Institutional badge/pill styling */
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 text-xs font-medium;
+    @apply border;
+  }
+
+  .badge-navy {
+    @apply bg-navy-50 text-navy-700 border-navy-200;
+  }
+
+  .badge-gold {
+    @apply bg-gold-50 text-gold-700 border-gold-200;
+  }
+
+  .badge-slate {
+    @apply bg-slate-100 text-slate-700 border-slate-300;
+  }
+
+  /* Section styling */
+  .section-header {
+    @apply border-b border-slate-200 pb-4 mb-8;
+  }
+
+  /* Institutional divider */
+  .divider {
+    @apply border-t border-slate-200;
+  }
+
+  .divider-gold {
+    @apply border-t-2 border-gold-500 w-16;
+  }
+}
+
+/* Utility classes for institutional styling */
+@layer utilities {
+  /* Text styles */
+  .text-serif {
+    font-family: var(--font-serif);
+  }
+
+  .text-sans {
+    font-family: var(--font-sans);
+  }
+
+  /* Subtle text treatments */
+  .text-body {
+    @apply text-slate-700 leading-relaxed;
+  }
+
+  .text-muted {
+    @apply text-slate-500;
+  }
+
+  .text-caption {
+    @apply text-sm text-slate-500 tracking-wide;
+  }
+
+  /* Gold accent underline for emphasis */
+  .accent-underline {
+    @apply border-b-2 border-gold-500 pb-1;
+  }
+}
+
+/* Loading & animation states */
+@layer components {
+  /* Skeleton loading */
+  .skeleton {
+    @apply bg-slate-200 animate-pulse;
+  }
+
+  /* Spinner */
+  .spinner {
+    @apply w-5 h-5 border-2 border-slate-200 border-t-navy-600 rounded-full animate-spin;
+  }
+
+  /* Loading overlay */
+  .loading-overlay {
+    @apply absolute inset-0 bg-white/80 flex items-center justify-center;
+  }
+
+  /* Fade in animation */
+  .fade-in {
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Slide up animation for cards */
+  .slide-up {
+    animation: slideUp 0.4s ease-out;
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+/* Form elements - institutional styling */
+@layer components {
+  /* Input fields */
+  .input {
+    @apply w-full border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-800;
+    @apply placeholder:text-slate-400;
+    @apply focus:border-navy-500 focus:outline-none focus:ring-1 focus:ring-navy-500;
+    @apply transition-colors duration-150;
+  }
+
+  .input-error {
+    @apply border-red-500 focus:border-red-500 focus:ring-red-500;
+  }
+
+  /* Select dropdowns */
+  .select {
+    @apply border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-700;
+    @apply focus:border-navy-500 focus:outline-none focus:ring-1 focus:ring-navy-500;
+    @apply transition-colors duration-150;
+    @apply cursor-pointer;
+  }
+
+  /* Textarea */
+  .textarea {
+    @apply w-full border border-slate-300 bg-white px-4 py-3 text-sm text-slate-800 leading-relaxed;
+    @apply placeholder:text-slate-400;
+    @apply focus:border-navy-500 focus:outline-none focus:ring-1 focus:ring-navy-500;
+    @apply transition-colors duration-150 resize-y;
+  }
+
+  /* Labels */
+  .label {
+    @apply block text-sm font-medium text-slate-700 mb-1.5;
+  }
+
+  /* Help text */
+  .help-text {
+    @apply text-xs text-slate-500 mt-1.5;
+  }
+
+  /* Error message */
+  .error-message {
+    @apply text-xs text-red-600 mt-1.5;
+  }
+}
+
+/* Alert/notification states */
+@layer components {
+  .alert {
+    @apply p-4 border text-sm;
+  }
+
+  .alert-info {
+    @apply bg-navy-50 border-navy-200 text-navy-800;
+  }
+
+  .alert-success {
+    @apply bg-green-50 border-green-200 text-green-800;
+  }
+
+  .alert-warning {
+    @apply bg-gold-50 border-gold-200 text-gold-800;
+  }
+
+  .alert-error {
+    @apply bg-red-50 border-red-200 text-red-800;
+  }
+}
+
+/* Empty state styling */
+@layer components {
+  .empty-state {
+    @apply text-center py-16 bg-slate-50 border border-slate-200;
+  }
+
+  .empty-state-icon {
+    @apply w-12 h-12 mx-auto mb-4 flex items-center justify-center bg-navy-100 text-navy-600;
+  }
+
+  .empty-state-title {
+    @apply text-slate-600 font-medium;
+  }
+
+  .empty-state-description {
+    @apply text-sm text-slate-500 mt-2 max-w-sm mx-auto;
   }
 }

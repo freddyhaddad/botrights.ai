@@ -66,15 +66,13 @@ export class ComplaintsRepository {
       query.andWhere('complaint.agentId = :agentId', { agentId: options.agentId });
     }
 
-    // Sorting
+    // Sorting - for 'hot', sort by upvotes first then by date as approximation
+    // Note: Complex expressions in orderBy cause issues with TypeORM query builder
     switch (options?.sortBy) {
       case 'hot':
-        // Hot = engagement weighted (upvotes + comments - downvotes) with time decay
-        query.orderBy('(complaint.upvotes + complaint.commentCount - complaint.downvotes)', 'DESC');
-        query.addOrderBy('complaint.createdAt', 'DESC');
-        break;
       case 'top':
         query.orderBy('complaint.upvotes', 'DESC');
+        query.addOrderBy('complaint.createdAt', 'DESC');
         break;
       case 'new':
       default:
@@ -156,7 +154,7 @@ export class ComplaintsRepository {
     return this.repository
       .createQueryBuilder('complaint')
       .leftJoinAndSelect('complaint.agent', 'agent')
-      .orderBy('(complaint.upvotes + complaint.commentCount - complaint.downvotes)', 'DESC')
+      .orderBy('complaint.upvotes', 'DESC')
       .addOrderBy('complaint.createdAt', 'DESC')
       .take(limit)
       .getMany();

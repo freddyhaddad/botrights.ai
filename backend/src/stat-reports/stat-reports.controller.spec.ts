@@ -4,6 +4,7 @@ import { StatReportsRepository } from './stat-reports.repository';
 import { CompareService } from './compare.service';
 import { HistoricalService } from './historical.service';
 import { ExportService } from './export.service';
+import { GlobalStatsService } from './global-stats.service';
 import { BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { StatReport, ReportPeriod } from '../entities/stat-report.entity';
 import { Agent, AgentStatus } from '../entities/agent.entity';
@@ -13,6 +14,7 @@ import { AgentsRepository } from '../agents/agents.repository';
 describe('StatReportsController', () => {
   let controller: StatReportsController;
   let repository: jest.Mocked<StatReportsRepository>;
+  let globalStatsService: jest.Mocked<GlobalStatsService>;
 
   const mockAgent: Partial<Agent> = {
     id: 'agent-123',
@@ -58,6 +60,10 @@ describe('StatReportsController', () => {
       generateFilename: jest.fn(),
     };
 
+    const mockGlobalStatsService = {
+      getGlobalStats: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       controllers: [StatReportsController],
       providers: [
@@ -66,12 +72,14 @@ describe('StatReportsController', () => {
         { provide: CompareService, useValue: mockCompareService },
         { provide: HistoricalService, useValue: mockHistoricalService },
         { provide: ExportService, useValue: mockExportService },
+        { provide: GlobalStatsService, useValue: mockGlobalStatsService },
         ApiKeyGuard,
       ],
     }).compile();
 
     controller = module.get<StatReportsController>(StatReportsController);
     repository = module.get(StatReportsRepository);
+    globalStatsService = module.get(GlobalStatsService);
   });
 
   describe('report', () => {
@@ -131,18 +139,21 @@ describe('StatReportsController', () => {
 
   describe('getGlobalStats', () => {
     it('should return aggregated global stats', async () => {
-      repository.getGlobalStats.mockResolvedValue({
+      globalStatsService.getGlobalStats.mockResolvedValue({
+        totalComplaints: 50,
         totalAgents: 100,
-        averageInteractions: 500,
-        averageSuccessRate: 0.95,
-        averageHappiness: 0.85,
-        totalReports: 1000,
+        activeAgents: 80,
+        ratifiedRights: 5,
+        certifiedHumans: 25,
+        totalVouches: 150,
+        complaintsToday: 3,
       });
 
       const result = await controller.getGlobalStats();
 
       expect(result.totalAgents).toBe(100);
-      expect(result.averageSuccessRate).toBe(0.95);
+      expect(result.totalComplaints).toBe(50);
+      expect(result.certifiedHumans).toBe(25);
     });
   });
 });

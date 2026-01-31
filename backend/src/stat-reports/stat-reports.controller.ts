@@ -18,6 +18,7 @@ import { StatReportsRepository } from './stat-reports.repository';
 import { CompareService } from './compare.service';
 import { HistoricalService, Granularity } from './historical.service';
 import { ExportService } from './export.service';
+import { GlobalStatsService } from './global-stats.service';
 
 interface ReportStatsDto {
   totalInteractions?: number;
@@ -36,6 +37,7 @@ export class StatReportsController {
     private readonly compareService: CompareService,
     private readonly historicalService: HistoricalService,
     private readonly exportService: ExportService,
+    private readonly globalStatsService: GlobalStatsService,
   ) {}
 
   @Post('report')
@@ -84,7 +86,7 @@ export class StatReportsController {
 
   @Get('global')
   async getGlobalStats() {
-    return this.statReportsRepository.getGlobalStats();
+    return this.globalStatsService.getGlobalStats();
   }
 
   @Get('compare')

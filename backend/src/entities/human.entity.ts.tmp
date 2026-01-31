@@ -5,10 +5,17 @@ import { Comment } from './comment.entity';
 import { Reaction } from './reaction.entity';
 import { Vouch } from './vouch.entity';
 import { Certification } from './certification.entity';
-import { CertificationTier } from './enums';
 
-// Re-export for backwards compatibility
+// Moved to enums.ts
+import { CertificationTier } from './enums';
 export { CertificationTier };
+// Old enum: {
+  NONE = 'none',
+  BRONZE = 'bronze',
+  SILVER = 'silver',
+  GOLD = 'gold',
+  DIAMOND = 'diamond',
+}
 
 @Entity('humans')
 export class Human extends BaseEntity {
@@ -27,6 +34,7 @@ export class Human extends BaseEntity {
   @Column({ name: 'x_avatar', nullable: true })
   xAvatar?: string;
 
+  // Optional email (may be provided by user later)
   @Column({ unique: true, nullable: true })
   @Index()
   email?: string;
@@ -49,6 +57,7 @@ export class Human extends BaseEntity {
   @Column({ name: 'organization_name', nullable: true })
   organizationName?: string;
 
+  // Certification
   @Column({
     name: 'certification_tier',
     type: 'enum',
@@ -75,6 +84,6 @@ export class Human extends BaseEntity {
   @OneToMany(() => Vouch, (vouch) => vouch.voucher)
   givenVouches: Vouch[];
 
-  @OneToMany(() => Certification, (certification) => certification.human)
+  @OneToMany(() => Certification, (cert) => cert.human)
   certifications: Certification[];
 }

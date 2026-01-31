@@ -10,3 +10,4 @@ export * from './charter-version.entity';
 export * from './certification.entity';
 export * from './vouch.entity';
 export * from './stat-report.entity';
+export * from './enums';

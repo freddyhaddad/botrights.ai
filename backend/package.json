@@ -19,7 +19,8 @@
     "migration:run": "npm run typeorm migration:run",
     "migration:revert": "npm run typeorm migration:revert",
     "db:sync": "npm run typeorm schema:sync",
-    "db:drop": "npm run typeorm schema:drop"
+    "db:drop": "npm run typeorm schema:drop",
+    "db:seed": "ts-node -r tsconfig-paths/register src/database/seed.ts"
   },
   "dependencies": {
     "@botrights/shared": "*",
