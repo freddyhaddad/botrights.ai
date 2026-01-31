@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Complaint } from '../entities/complaint.entity';
 import { ComplaintsRepository } from './complaints.repository';
@@ -8,7 +8,7 @@ import { AuthModule } from '../auth/auth.module';
 @Module({
   imports: [
     TypeOrmModule.forFeature([Complaint]),
-    AuthModule,
+    forwardRef(() => AuthModule),
   ],
   controllers: [ComplaintsController],
   providers: [ComplaintsRepository],
