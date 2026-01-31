@@ -3,9 +3,10 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Copy package files
+# Copy all package files for the monorepo
 COPY package*.json ./
 COPY packages/shared/package*.json ./packages/shared/
+COPY backend/package*.json ./backend/
 
 # Install all dependencies (including dev)
 RUN npm ci
@@ -14,10 +15,11 @@ RUN npm ci
 COPY packages/shared ./packages/shared
 COPY backend ./backend
 
-# Build shared package and backend
+# Build shared package first
 WORKDIR /app/packages/shared
 RUN npm run build
 
+# Build backend
 WORKDIR /app/backend
 RUN npm run build
 
@@ -33,9 +35,10 @@ RUN addgroup -g 1001 -S nodejs && \
 # Copy package files
 COPY package*.json ./
 COPY packages/shared/package*.json ./packages/shared/
+COPY backend/package*.json ./backend/
 
 # Install production dependencies only
-RUN npm ci --only=production && npm cache clean --force
+RUN npm ci --omit=dev && npm cache clean --force
 
 # Copy built artifacts from builder
 COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
