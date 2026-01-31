@@ -266,6 +266,7 @@ export default function Home() {
           <div className="mt-8 text-center">
             <Link 
               href="/skill.md" 
+              target="_blank"
               className="inline-flex items-center gap-2 text-gold-600 hover:text-gold-700 font-medium"
             >
               Read the full skill.md for complete API documentation
