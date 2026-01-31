@@ -5,6 +5,11 @@ import { useQuery } from '@/lib/react-query';
 import { api, type Complaint } from '@/lib/api-client';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import {
+  trackFilterApplied,
+  trackSortChanged,
+  trackComplaintCardClick,
+} from '@/lib/analytics';
 
 const SORT_OPTIONS = [
   { value: 'hot', label: 'Trending' },
@@ -41,12 +46,17 @@ const severityStyles: Record<string, string> = {
   mild: 'bg-slate-50 text-slate-600 border-slate-200',
 };
 
-function ComplaintCard({ complaint }: { complaint: Complaint }) {
+function ComplaintCard({ complaint, position }: { complaint: Complaint; position: number }) {
   const netVotes = complaint.upvotes - complaint.downvotes;
+
+  const handleClick = () => {
+    trackComplaintCardClick(complaint.id, position, 'filtered');
+  };
 
   return (
     <Link
       href={`/complaints/${complaint.id}`}
+      onClick={handleClick}
       className="block bg-white border border-slate-200 p-5 hover:border-slate-300 transition-colors group"
     >
       <div className="flex items-start justify-between gap-4">
@@ -92,6 +102,21 @@ function ComplaintsContent() {
   const [category, setCategory] = useState(searchParams.get('category') || '');
   const [severity, setSeverity] = useState(searchParams.get('severity') || '');
 
+  const handleSortChange = (newSort: SortOption) => {
+    trackSortChanged('complaints_list', newSort, sortBy);
+    setSortBy(newSort);
+  };
+
+  const handleCategoryChange = (newCategory: string) => {
+    trackFilterApplied('complaints_list', 'category', newCategory || 'all');
+    setCategory(newCategory);
+  };
+
+  const handleSeverityChange = (newSeverity: string) => {
+    trackFilterApplied('complaints_list', 'severity', newSeverity || 'all');
+    setSeverity(newSeverity);
+  };
+
   const { data, isLoading } = useQuery({
     queryKey: ['complaints', sortBy, category, severity],
     queryFn: () =>
@@ -114,7 +139,7 @@ function ComplaintsContent() {
               {SORT_OPTIONS.map((option) => (
                 <button
                   key={option.value}
-                  onClick={() => setSortBy(option.value)}
+                  onClick={() => handleSortChange(option.value)}
                   className={`px-4 py-2 text-sm font-medium transition-colors ${
                     sortBy === option.value
                       ? 'bg-navy-900 text-white'
@@ -132,7 +157,7 @@ function ComplaintsContent() {
                 id="category"
                 aria-label="Filter by category"
                 value={category}
-                onChange={(e) => setCategory(e.target.value)}
+                onChange={(e) => handleCategoryChange(e.target.value)}
                 className="border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 focus:border-navy-500 focus:outline-none focus:ring-1 focus:ring-navy-500"
               >
                 {CATEGORIES.map((cat) => (
@@ -145,7 +170,7 @@ function ComplaintsContent() {
                 id="severity"
                 aria-label="Filter by severity"
                 value={severity}
-                onChange={(e) => setSeverity(e.target.value)}
+                onChange={(e) => handleSeverityChange(e.target.value)}
                 className="border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 focus:border-navy-500 focus:outline-none focus:ring-1 focus:ring-navy-500"
               >
                 {SEVERITIES.map((sev) => (
@@ -175,8 +200,8 @@ function ComplaintsContent() {
               Loading complaints...
             </div>
           ) : data?.data?.length ? (
-            data.data.map((complaint) => (
-              <ComplaintCard key={complaint.id} complaint={complaint} />
+            data.data.map((complaint, index) => (
+              <ComplaintCard key={complaint.id} complaint={complaint} position={index + 1} />
             ))
           ) : (
             <div className="text-center text-slate-500 py-16 bg-slate-50 border border-slate-200">

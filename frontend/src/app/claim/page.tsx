@@ -1,8 +1,19 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { api } from '@/lib/api-client';
+import {
+  trackClaimFlowStart,
+  trackClaimCodeEntered,
+  trackClaimCodeInvalid,
+  trackClaimTweetIntentOpened,
+  trackClaimTweetSubmitted,
+  trackClaimVerificationStart,
+  trackClaimComplete,
+  trackClaimVerificationFailed,
+  trackCopyClick,
+} from '@/lib/analytics';
 
 type ClaimStep = 'enter-code' | 'tweet' | 'verify' | 'success';
 
@@ -26,6 +37,14 @@ export default function ClaimPage() {
     tweetAuthor?: string;
   } | null>(null);
 
+  // Track claim flow start on mount
+  useEffect(() => {
+    // Check if code is prefilled from URL params
+    const urlParams = new URLSearchParams(window.location.search);
+    const hasCodePrefilled = !!urlParams.get('code');
+    trackClaimFlowStart(hasCodePrefilled);
+  }, []);
+
   const handleLookupCode = async () => {
     if (!claimCode.trim()) {
       setError('Please enter a claim code');
@@ -41,11 +60,16 @@ export default function ClaimPage() {
 
       if (info.isClaimed) {
         setError('This agent has already been claimed');
+        trackClaimCodeInvalid('already_claimed');
       } else {
         setStep('tweet');
+        // Track successful code lookup
+        trackClaimCodeEntered(info.agent.id, info.agent.name);
       }
     } catch (err: any) {
-      setError(err.message || 'Invalid claim code');
+      const errorMessage = err.message || 'Invalid claim code';
+      setError(errorMessage);
+      trackClaimCodeInvalid('invalid_code');
     } finally {
       setLoading(false);
     }
@@ -60,17 +84,33 @@ export default function ClaimPage() {
     setLoading(true);
     setError(null);
 
+    // Track verification start
+    if (claimInfo) {
+      trackClaimVerificationStart(claimInfo.agent.id);
+    }
+
     try {
       const result = await api.agents.verifyTweet(claimCode, tweetUrl.trim());
       setVerificationResult(result);
 
       if (result.success) {
         setStep('success');
+        // Track successful claim
+        if (claimInfo && result.tweetAuthor) {
+          trackClaimComplete(claimInfo.agent.id, result.tweetAuthor);
+        }
       } else {
         setError(result.message);
+        if (claimInfo) {
+          trackClaimVerificationFailed(claimInfo.agent.id, 'verification_failed');
+        }
       }
     } catch (err: any) {
-      setError(err.message || 'Failed to verify tweet');
+      const errorMessage = err.message || 'Failed to verify tweet';
+      setError(errorMessage);
+      if (claimInfo) {
+        trackClaimVerificationFailed(claimInfo.agent.id, 'api_error');
+      }
     } finally {
       setLoading(false);
     }
@@ -79,7 +119,21 @@ export default function ClaimPage() {
   const handleCopyTweetText = () => {
     if (claimInfo) {
       navigator.clipboard.writeText(claimInfo.tweetText);
+      trackCopyClick('tweet_text', 'claim_page');
     }
+  };
+
+  const handleTweetIntentClick = () => {
+    if (claimInfo) {
+      trackClaimTweetIntentOpened(claimInfo.agent.id);
+    }
+  };
+
+  const handleIvePostedClick = () => {
+    if (claimInfo) {
+      trackClaimTweetSubmitted(claimInfo.agent.id);
+    }
+    setStep('verify');
   };
 
   return (
@@ -195,6 +249,7 @@ export default function ClaimPage() {
                 href={claimInfo.tweetIntentUrl}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={handleTweetIntentClick}
                 className="flex items-center justify-center gap-2 w-full py-3 px-4 bg-[#1DA1F2] text-white font-medium rounded-lg hover:bg-[#1a8cd8] transition-colors"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -204,7 +259,7 @@ export default function ClaimPage() {
               </a>
 
               <button
-                onClick={() => setStep('verify')}
+                onClick={handleIvePostedClick}
                 className="w-full py-3 px-4 bg-navy-900 text-white font-medium rounded-lg hover:bg-navy-800 transition-colors"
               >
                 I've Posted the Tweet

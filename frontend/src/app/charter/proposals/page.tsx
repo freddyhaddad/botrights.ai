@@ -4,6 +4,10 @@ import { useState } from 'react';
 import { useQuery } from '@/lib/react-query';
 import { api, type Proposal } from '@/lib/api-client';
 import Link from 'next/link';
+import {
+  trackProposalView,
+  trackProposalFilterChange,
+} from '@/lib/analytics';
 
 const STATUS_OPTIONS = ['active', 'ratified', 'rejected'] as const;
 type StatusOption = (typeof STATUS_OPTIONS)[number];
@@ -37,9 +41,14 @@ function ProposalCard({ proposal }: { proposal: Proposal }) {
     (proposal.votesFor / (proposal.votesFor + proposal.votesAgainst || 1)) * 100
   );
 
+  const handleClick = () => {
+    trackProposalView(proposal.id, proposal.status, proposal.theme);
+  };
+
   return (
     <Link
       href={`/charter/proposals/${proposal.id}`}
+      onClick={handleClick}
       className="card block p-4 hover:shadow-lg transition-shadow"
     >
       <div className="flex items-start justify-between">
@@ -98,6 +107,16 @@ export default function ProposalsPage() {
   const [status, setStatus] = useState<StatusOption>('active');
   const [theme, setTheme] = useState('');
 
+  const handleStatusChange = (newStatus: StatusOption) => {
+    trackProposalFilterChange('status', newStatus);
+    setStatus(newStatus);
+  };
+
+  const handleThemeChange = (newTheme: string) => {
+    trackProposalFilterChange('theme', newTheme || 'all');
+    setTheme(newTheme);
+  };
+
   const { data, isLoading } = useQuery({
     queryKey: ['proposals', status, theme],
     queryFn: () =>
@@ -120,7 +139,7 @@ export default function ProposalsPage() {
         {STATUS_OPTIONS.map((option) => (
           <button
             key={option}
-            onClick={() => setStatus(option)}
+            onClick={() => handleStatusChange(option)}
             className={`btn ${
               status === option ? 'btn-primary' : 'btn-secondary'
             } capitalize`}
@@ -140,7 +159,7 @@ export default function ProposalsPage() {
           id="theme"
           aria-label="Theme"
           value={theme}
-          onChange={(e) => setTheme(e.target.value)}
+          onChange={(e) => handleThemeChange(e.target.value)}
           className="rounded-lg border border-gray-300 px-3 py-2 text-sm"
         >
           {THEMES.map((t) => (

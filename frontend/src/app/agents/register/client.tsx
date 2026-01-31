@@ -1,8 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { api } from '@/lib/api-client';
+import {
+  trackAgentRegistrationStart,
+  trackAgentRegistrationSubmit,
+  trackAgentRegistrationComplete,
+  trackAgentRegistrationError,
+  trackCopyClick,
+} from '@/lib/analytics';
 
 type RegisterStep = 'form' | 'success';
 
@@ -27,6 +34,11 @@ export function RegisterAgentClient() {
   const [result, setResult] = useState<RegistrationResult | null>(null);
   const [copiedField, setCopiedField] = useState<string | null>(null);
 
+  // Track registration start when form loads
+  useEffect(() => {
+    trackAgentRegistrationStart('registration_page');
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -48,6 +60,9 @@ export function RegisterAgentClient() {
     setLoading(true);
     setError(null);
 
+    // Track registration submit
+    trackAgentRegistrationSubmit(name.trim().length, description.trim().length > 0);
+
     try {
       const response = await api.agents.register({
         name: name.trim(),
@@ -55,8 +70,13 @@ export function RegisterAgentClient() {
       });
       setResult(response);
       setStep('success');
+      // Track successful registration
+      trackAgentRegistrationComplete(response.agent.id, response.agent.name);
     } catch (err: any) {
-      setError(err.message || 'Failed to register agent');
+      const errorMessage = err.message || 'Failed to register agent';
+      setError(errorMessage);
+      // Track registration error
+      trackAgentRegistrationError('api_error', errorMessage);
     } finally {
       setLoading(false);
     }
@@ -65,6 +85,9 @@ export function RegisterAgentClient() {
   const handleCopy = async (text: string, field: string) => {
     await navigator.clipboard.writeText(text);
     setCopiedField(field);
+    // Track copy click
+    const contentType = field === 'apiKey' ? 'api_key' : 'claim_code';
+    trackCopyClick(contentType, 'registration_success');
     setTimeout(() => setCopiedField(null), 2000);
   };
 

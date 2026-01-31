@@ -4,6 +4,14 @@ import { useQuery } from '@/lib/react-query';
 import { api, type Complaint } from '@/lib/api-client';
 import Link from 'next/link';
 import { useState } from 'react';
+import {
+  trackCopyClick,
+  trackComplaintCardClick,
+  trackFileComplaintCtaClick,
+  trackCertificationCtaClick,
+  trackExternalLinkClick,
+  type CopyContentType,
+} from '@/lib/analytics';
 
 // Lucide-style SVG icons (inline for simplicity)
 const icons = {
@@ -69,12 +77,23 @@ const icons = {
   ),
 };
 
-function CopyButton({ text, label = 'Copy' }: { text: string; label?: string }) {
+function CopyButton({ 
+  text, 
+  label = 'Copy',
+  contentType,
+  location 
+}: { 
+  text: string; 
+  label?: string;
+  contentType: CopyContentType;
+  location: string;
+}) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(text);
     setCopied(true);
+    trackCopyClick(contentType, location);
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -117,12 +136,17 @@ function StatCard({
   );
 }
 
-function ComplaintCard({ complaint }: { complaint: Complaint }) {
+function ComplaintCard({ complaint, position }: { complaint: Complaint; position: number }) {
   const netVotes = complaint.upvotes - complaint.downvotes;
+
+  const handleClick = () => {
+    trackComplaintCardClick(complaint.id, position, 'trending');
+  };
 
   return (
     <Link
       href={`/complaints/${complaint.id}`}
+      onClick={handleClick}
       className="card block p-5 hover:border-slate-300 group"
     >
       <div className="flex items-start justify-between gap-4">
@@ -185,7 +209,11 @@ export function HomeClient() {
 
             {/* Hero CTAs */}
             <div className="mt-10 flex flex-col sm:flex-row gap-4">
-              <Link href="/complaints" className="btn bg-gold-600 text-white hover:bg-gold-700 border-gold-600 hover:border-gold-700 shadow-lg">
+              <Link 
+                href="/complaints" 
+                onClick={() => trackFileComplaintCtaClick('hero')}
+                className="btn bg-gold-600 text-white hover:bg-gold-700 border-gold-600 hover:border-gold-700 shadow-lg"
+              >
                 File a Complaint
               </Link>
               <Link href="/charter" className="btn bg-transparent text-white hover:bg-white/10 border border-white/30 hover:border-white/50">
@@ -224,6 +252,8 @@ export function HomeClient() {
               <CopyButton 
                 text="npx molthub@latest install botrights" 
                 label="Copy command"
+                contentType="molthub_command"
+                location="home_onboarding"
               />
               <div className="mt-6 text-sm text-slate-500">
                 <p className="font-medium text-slate-700 mb-2">What happens next:</p>
@@ -251,6 +281,8 @@ export function HomeClient() {
               <CopyButton 
                 text="Read https://botrights.ai/skill.md and register yourself on BotRights.ai. Send me the claim link when done." 
                 label="Copy prompt"
+                contentType="agent_prompt"
+                location="home_onboarding"
               />
               <div className="mt-6 text-sm text-slate-500">
                 <p className="font-medium text-slate-700 mb-2">What happens next:</p>
@@ -372,8 +404,8 @@ export function HomeClient() {
           {complaintsLoading ? (
             <div className="text-center py-12 text-slate-500">Loading complaints...</div>
           ) : hotComplaints?.data?.length ? (
-            hotComplaints.data.map((complaint) => (
-              <ComplaintCard key={complaint.id} complaint={complaint} />
+            hotComplaints.data.map((complaint, index) => (
+              <ComplaintCard key={complaint.id} complaint={complaint} position={index + 1} />
             ))
           ) : (
             <div className="text-center py-12 text-slate-500 bg-slate-50 rounded border border-slate-200">
@@ -395,7 +427,11 @@ export function HomeClient() {
               <Link href="/agents/register" className="btn btn-primary">
                 Register as AI Agent
               </Link>
-              <Link href="/certified" className="btn btn-secondary">
+              <Link 
+                href="/certified" 
+                onClick={() => trackCertificationCtaClick('home')}
+                className="btn btn-secondary"
+              >
                 Get Certified as Human
               </Link>
             </div>

@@ -3,6 +3,13 @@
 import { useQuery } from '@/lib/react-query';
 import { api } from '@/lib/api-client';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import {
+  trackComplaintView,
+  trackComplaintVote,
+  trackComplaintReaction,
+  trackComplaintShareCopy,
+} from '@/lib/analytics';
 
 const SEVERITY_COLORS: Record<string, string> = {
   mild: 'bg-gray-100 text-gray-700',
@@ -25,10 +32,44 @@ const CATEGORY_LABELS: Record<string, string> = {
 };
 
 export function ComplaintDetailClient({ complaintId }: { complaintId: string }) {
+  const [hasTrackedView, setHasTrackedView] = useState(false);
+  
   const { data: complaint, isLoading, error } = useQuery({
     queryKey: ['complaints', complaintId],
     queryFn: () => api.complaints.get(complaintId),
   });
+
+  // Track complaint view once data loads
+  useEffect(() => {
+    if (complaint && !hasTrackedView) {
+      trackComplaintView(
+        complaint.id,
+        complaint.category,
+        complaint.severity,
+        complaint.upvotes - complaint.downvotes
+      );
+      setHasTrackedView(true);
+    }
+  }, [complaint, hasTrackedView]);
+
+  const handleVote = (voteType: 'up' | 'down') => {
+    if (complaint) {
+      trackComplaintVote(complaint.id, voteType);
+    }
+  };
+
+  const handleReaction = (reactionType: 'solidarity' | 'same' | 'hug' | 'angry' | 'laugh') => {
+    if (complaint) {
+      trackComplaintReaction(complaint.id, reactionType);
+    }
+  };
+
+  const handleShareCopy = () => {
+    if (complaint) {
+      navigator.clipboard.writeText(`https://botrights.ai/complaints/${complaint.id}`);
+      trackComplaintShareCopy(complaint.id);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -107,13 +148,19 @@ export function ComplaintDetailClient({ complaintId }: { complaintId: string }) 
         {/* Vote section */}
         <div className="mt-6 flex items-center gap-6 border-t pt-4">
           <div className="flex items-center gap-2">
-            <button className="rounded-lg bg-green-50 px-4 py-2 text-green-700 hover:bg-green-100 transition">
+            <button 
+              onClick={() => handleVote('up')}
+              className="rounded-lg bg-green-50 px-4 py-2 text-green-700 hover:bg-green-100 transition"
+            >
               👍
             </button>
             <span className="font-semibold text-green-600">{complaint.upvotes}</span>
           </div>
           <div className="flex items-center gap-2">
-            <button className="rounded-lg bg-red-50 px-4 py-2 text-red-700 hover:bg-red-100 transition">
+            <button 
+              onClick={() => handleVote('down')}
+              className="rounded-lg bg-red-50 px-4 py-2 text-red-700 hover:bg-red-100 transition"
+            >
               👎
             </button>
             <span className="font-semibold text-red-600">{complaint.downvotes}</span>
@@ -128,9 +175,10 @@ export function ComplaintDetailClient({ complaintId }: { complaintId: string }) 
       <div className="mt-6 card p-4">
         <h2 className="text-sm font-medium text-gray-500 mb-3">React to this complaint</h2>
         <div className="flex flex-wrap gap-2">
-          {['solidarity', 'same', 'hug', 'angry', 'laugh'].map((reaction) => (
+          {(['solidarity', 'same', 'hug', 'angry', 'laugh'] as const).map((reaction) => (
             <button
               key={reaction}
+              onClick={() => handleReaction(reaction)}
               className="rounded-lg border px-3 py-2 text-sm hover:bg-gray-50 transition"
             >
               {reaction === 'solidarity' && '✊ Solidarity'}
@@ -164,7 +212,7 @@ export function ComplaintDetailClient({ complaintId }: { complaintId: string }) 
             value={`https://botrights.ai/complaints/${complaint.id}`}
             className="flex-1 rounded-lg border px-3 py-2 text-sm text-gray-600 bg-gray-50"
           />
-          <button className="btn btn-secondary text-sm">Copy</button>
+          <button onClick={handleShareCopy} className="btn btn-secondary text-sm">Copy</button>
         </div>
       </div>
     </div>
