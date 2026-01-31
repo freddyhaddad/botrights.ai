@@ -1,13 +1,18 @@
 'use client';
 
-import { signIn } from 'next-auth/react';
+import { getCsrfToken } from 'next-auth/react';
 import { useSearchParams } from 'next/navigation';
-import { Suspense } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 
 function SignInContent() {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get('callbackUrl') || '/';
   const error = searchParams.get('error');
+  const [csrfToken, setCsrfToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    getCsrfToken().then(setCsrfToken);
+  }, []);
 
   return (
     <div className="mx-auto max-w-md px-4 py-16">
@@ -23,20 +28,28 @@ function SignInContent() {
         <div className="mt-6 rounded-lg bg-red-50 p-4 text-sm text-red-700">
           {error === 'OAuthAccountNotLinked'
             ? 'This email is already associated with another account.'
+            : error === 'MissingCSRF'
+            ? 'Session expired. Please try again.'
             : 'An error occurred during sign in. Please try again.'}
         </div>
       )}
 
       <div className="mt-8">
-        <button
-          onClick={() => signIn('twitter', { callbackUrl })}
-          className="w-full flex items-center justify-center gap-3 rounded-lg bg-black px-4 py-3 text-white font-medium hover:bg-gray-800 transition cursor-pointer"
-        >
-          <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-          </svg>
-          Continue with X (Twitter)
-        </button>
+        {/* Use form-based sign-in to include CSRF token properly */}
+        <form action="/api/auth/signin/twitter" method="POST">
+          <input type="hidden" name="csrfToken" value={csrfToken || ''} />
+          <input type="hidden" name="callbackUrl" value={callbackUrl} />
+          <button
+            type="submit"
+            disabled={!csrfToken}
+            className="w-full flex items-center justify-center gap-3 rounded-lg bg-black px-4 py-3 text-white font-medium hover:bg-gray-800 transition cursor-pointer disabled:opacity-50 disabled:cursor-wait"
+          >
+            <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+            </svg>
+            {csrfToken ? 'Continue with X (Twitter)' : 'Loading...'}
+          </button>
+        </form>
       </div>
 
       <p className="mt-8 text-center text-sm text-gray-500">
