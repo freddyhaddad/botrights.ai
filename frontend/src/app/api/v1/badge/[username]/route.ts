@@ -8,7 +8,7 @@ export async function GET(
 
   try {
     const response = await fetch(`${BACKEND_URL}/api/v1/badge/${username}`, {
-      next: { revalidate: 3600 }, // Cache for 1 hour
+      cache: 'no-store', // Don't cache - always fetch fresh from backend
     });
 
     if (!response.ok) {
@@ -27,7 +27,7 @@ export async function GET(
       status: 200,
       headers: {
         'Content-Type': 'image/svg+xml',
-        'Cache-Control': 'public, max-age=3600, s-maxage=3600',
+        'Cache-Control': 'public, max-age=60, s-maxage=60', // 1 minute cache
       },
     });
   } catch {
