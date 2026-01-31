@@ -1,7 +1,7 @@
 import { Controller, Get, Param, Header } from '@nestjs/common';
 import { BadgesService } from './badges.service';
 
-@Controller('badge')
+@Controller('api/v1/badge')
 export class BadgesController {
   constructor(private readonly badgesService: BadgesService) {}
 
