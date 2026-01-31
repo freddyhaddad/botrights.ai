@@ -3,26 +3,28 @@ import Twitter from 'next-auth/providers/twitter';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
-// Only configure Twitter provider if credentials are available
-const providers = [];
-if (process.env.AUTH_TWITTER_ID && process.env.AUTH_TWITTER_SECRET) {
-  providers.push(
-    Twitter({
-      clientId: process.env.AUTH_TWITTER_ID,
-      clientSecret: process.env.AUTH_TWITTER_SECRET,
-      authorization: {
-        params: {
-          // Minimal scopes - only need profile info for human certification
-          // Removes tweet.read to avoid "view all posts" permission
-          scope: 'users.read offline.access',
-        },
+// Configure Twitter provider - env vars are read at runtime, not build time
+// Using OAuth 2.0 (requires version: "2.0" to be explicit)
+const providers = [
+  Twitter({
+    clientId: process.env.AUTH_TWITTER_ID!,
+    clientSecret: process.env.AUTH_TWITTER_SECRET!,
+    // @ts-expect-error - version is supported but not in types
+    version: '2.0',
+    authorization: {
+      params: {
+        // Minimal scopes - only need profile info for human certification
+        // Removes tweet.read to avoid "view all posts" permission
+        scope: 'users.read offline.access',
       },
-    })
-  );
-}
+    },
+  }),
+];
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers,
+  // Trust the host header on Vercel (required for NextAuth v5)
+  trustHost: true,
   callbacks: {
     async jwt({ token, account, profile }) {
       // On initial sign in, exchange the Twitter tokens with our backend
