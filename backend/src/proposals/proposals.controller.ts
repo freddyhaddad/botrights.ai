@@ -10,8 +10,7 @@ import {
 } from '@nestjs/common';
 import { ApiKeyGuard } from '../auth/guards/api-key.guard';
 import { CurrentAgent } from '../auth/decorators/current-agent.decorator';
-import { Agent } from '../entities/agent.entity';
-import { Proposal, ProposalStatus, ProposalTheme } from '../entities/proposal.entity';
+import { Agent, Proposal, ProposalStatus, ProposalTheme } from '@prisma/client';
 import { ProposalsRepository } from './proposals.repository';
 import { ExpirationService } from './expiration.service';
 import { ProposalRateLimit } from '../rate-limit/rate-limit.guard';

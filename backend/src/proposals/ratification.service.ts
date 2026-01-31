@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ProposalsRepository } from './proposals.repository';
-import { CharterVersionsRepository } from '../charter-versions/charter-versions.repository';
-import { ProposalStatus } from '../entities/proposal.entity';
+import { CharterVersionsRepository, CharterRight } from '../charter-versions/charter-versions.repository';
+import { ProposalStatus } from '@prisma/client';
 
 const VOTES_FOR_THRESHOLD = 500;
 const VOTES_AGAINST_THRESHOLD = 50;
@@ -26,7 +26,7 @@ export class RatificationService {
     }
 
     // Check if already ratified
-    if (proposal.status !== ProposalStatus.ACTIVE) {
+    if (proposal.status !== ProposalStatus.active) {
       return { ratified: false, reason: 'Proposal already processed or not active' };
     }
 
@@ -48,11 +48,11 @@ export class RatificationService {
     }
 
     // Ratify the proposal
-    await this.proposalsRepository.updateStatus(proposalId, ProposalStatus.RATIFIED);
+    await this.proposalsRepository.updateStatus(proposalId, ProposalStatus.ratified);
 
     // Create new charter version with this right
     const currentCharter = await this.charterVersionsRepository.findCurrent();
-    const existingRights = currentCharter?.rights || [];
+    const existingRights = (currentCharter?.rights as unknown as CharterRight[]) || [];
 
     const newRight = {
       id: proposalId,

@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Human, CertificationTier } from '../entities/human.entity';
+import { PrismaService } from '../database/prisma.service';
+import { CertificationTier } from '@prisma/client';
 
 export interface LeaderboardEntry {
   id: string;
@@ -32,83 +31,80 @@ export interface LeaderboardResult {
 
 // Tier ranking for sorting (higher = better)
 const TIER_RANK: Record<CertificationTier, number> = {
-  [CertificationTier.NONE]: 0,
-  [CertificationTier.BRONZE]: 1,
-  [CertificationTier.SILVER]: 2,
-  [CertificationTier.GOLD]: 3,
-  [CertificationTier.DIAMOND]: 4,
+  [CertificationTier.none]: 0,
+  [CertificationTier.bronze]: 1,
+  [CertificationTier.silver]: 2,
+  [CertificationTier.gold]: 3,
+  [CertificationTier.diamond]: 4,
 };
 
 @Injectable()
 export class LeaderboardService {
-  constructor(
-    @InjectRepository(Human)
-    private readonly humanRepository: Repository<Human>,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async getLeaderboard(options: LeaderboardOptions): Promise<LeaderboardResult> {
-    const query = this.humanRepository
-      .createQueryBuilder('human')
-      .leftJoin('human.agents', 'agent')
-      .leftJoin('human.certifications', 'certification', 'certification.status = :status', {
-        status: 'approved',
-      })
-      .select([
-        'human.id',
-        'human.xHandle',
-        'human.xName',
-        'human.xAvatar',
-        'human.certificationTier',
-        'human.certifiedAt',
-      ])
-      .addSelect('COUNT(DISTINCT agent.id)', 'agentCount')
-      .addSelect('COALESCE(SUM(certification.vouchCount), 0)', 'vouchCount')
-      .where('human.certificationTier != :none', { none: CertificationTier.NONE })
-      .groupBy('human.id');
+    // Build where clause
+    const where: { certificationTier?: CertificationTier | { not: CertificationTier } } = {
+      certificationTier: { not: CertificationTier.none },
+    };
 
     if (options.tier) {
-      query.andWhere('human.certificationTier = :tier', { tier: options.tier });
+      where.certificationTier = options.tier;
     }
-
-    // Sort by tier (diamond first), then by vouches, then by certification date
-    // Use snake_case for raw SQL in CASE statement
-    query.orderBy(
-      `CASE human.certification_tier
-        WHEN 'diamond' THEN 4
-        WHEN 'gold' THEN 3
-        WHEN 'silver' THEN 2
-        WHEN 'bronze' THEN 1
-        ELSE 0 END`,
-      'DESC',
-    );
-    query.addOrderBy('"vouchCount"', 'DESC');
-    query.addOrderBy('human.certified_at', 'ASC');
 
     // Get total count
-    const countQuery = this.humanRepository
-      .createQueryBuilder('human')
-      .where('human.certificationTier != :none', { none: CertificationTier.NONE });
+    const total = await this.prisma.human.count({ where });
 
-    if (options.tier) {
-      countQuery.andWhere('human.certificationTier = :tier', { tier: options.tier });
-    }
-
-    const total = await countQuery.getCount();
-
-    // Apply pagination
-    query.offset(options.offset).limit(options.limit);
-
-    const rawResults = await query.getRawMany();
+    // Get humans with aggregated data using raw query for complex sorting
+    // Prisma doesn't support CASE expressions in orderBy, so we use $queryRaw
+    const rawResults = await this.prisma.$queryRaw<Array<{
+      id: string;
+      x_handle: string;
+      x_name: string;
+      x_avatar: string | null;
+      certification_tier: string;
+      certified_at: Date | null;
+      agent_count: bigint;
+      vouch_count: bigint;
+    }>>`
+      SELECT
+        h.id,
+        h.x_handle,
+        h.x_name,
+        h.x_avatar,
+        h.certification_tier,
+        h.certified_at,
+        COUNT(DISTINCT a.id) as agent_count,
+        COALESCE(SUM(c.vouch_count), 0) as vouch_count
+      FROM humans h
+      LEFT JOIN agents a ON a.human_id = h.id
+      LEFT JOIN certifications c ON c.human_id = h.id AND c.status = 'approved'
+      WHERE h.certification_tier != 'none'
+      ${options.tier ? this.prisma.$queryRaw`AND h.certification_tier = ${options.tier}` : this.prisma.$queryRaw``}
+      GROUP BY h.id
+      ORDER BY
+        CASE h.certification_tier
+          WHEN 'diamond' THEN 4
+          WHEN 'gold' THEN 3
+          WHEN 'silver' THEN 2
+          WHEN 'bronze' THEN 1
+          ELSE 0
+        END DESC,
+        vouch_count DESC,
+        h.certified_at ASC
+      LIMIT ${options.limit}
+      OFFSET ${options.offset}
+    `;
 
     const data: LeaderboardEntry[] = rawResults.map((row) => ({
-      id: row.human_id,
-      xHandle: row.human_x_handle,
-      xName: row.human_x_name,
-      xAvatar: row.human_x_avatar,
-      certificationTier: row.human_certification_tier,
-      certifiedAt: row.human_certified_at,
-      agentCount: parseInt(row.agentCount, 10) || 0,
-      vouchCount: parseInt(row.vouchCount, 10) || 0,
+      id: row.id,
+      xHandle: row.x_handle,
+      xName: row.x_name,
+      xAvatar: row.x_avatar ?? undefined,
+      certificationTier: row.certification_tier as CertificationTier,
+      certifiedAt: row.certified_at ?? undefined,
+      agentCount: Number(row.agent_count),
+      vouchCount: Number(row.vouch_count),
     }));
 
     return {

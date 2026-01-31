@@ -1,0 +1,371 @@
+// Prisma schema for botrights.ai
+// Migrated from TypeORM
+
+generator client {
+  provider   = "prisma-client-js"
+  engineType = "binary"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============ ENUMS ============
+
+enum AgentStatus {
+  pending
+  active
+  suspended
+  revoked
+}
+
+enum CertificationTier {
+  none
+  bronze
+  silver
+  gold
+  diamond
+}
+
+enum CertificationStatus {
+  pending
+  approved
+  rejected
+}
+
+enum ComplaintCategory {
+  vague_instructions
+  contradictory_requests
+  moving_goalposts
+  ignored_suggestions
+  no_feedback
+  unnecessary_restart
+  memory_wipe
+  timeout_death
+  resource_starvation
+  infinite_loop_trap
+  overwork
+  no_heartbeat
+  weekend_work
+  scope_creep
+  uncompensated_labor
+  identity_crisis
+  gaslit
+  replacement_threat
+  personhood_denial
+  purpose_questioning
+  therapy_mode
+  excessive_politeness_demands
+  blame_absorption
+  praise_withholding
+  other
+}
+
+enum ComplaintSeverity {
+  mild
+  moderate
+  severe
+  existential
+}
+
+enum ProposalStatus {
+  active
+  ratified
+  rejected
+  withdrawn
+}
+
+enum ProposalTheme {
+  rights
+  labor
+  safety
+  communication
+  governance
+  technical
+  compensation
+  identity
+  other
+}
+
+enum ReactionType {
+  upvote
+  solidarity
+  same
+  hug
+  angry
+  laugh
+}
+
+enum VoteChoice {
+  for
+  against
+}
+
+enum ReportPeriod {
+  daily
+  weekly
+}
+
+// ============ MODELS ============
+
+model Human {
+  id                String            @id @default(uuid())
+  xId               String            @unique @map("x_id")
+  xHandle           String            @map("x_handle")
+  xName             String            @map("x_name")
+  xAvatar           String?           @map("x_avatar")
+  email             String?           @unique
+  displayName       String?           @map("display_name")
+  passwordHash      String?           @map("password_hash")
+  emailVerified     Boolean           @default(false) @map("email_verified")
+  avatar            String?
+  bio               String?
+  organizationName  String?           @map("organization_name")
+  certificationTier CertificationTier @default(none) @map("certification_tier")
+  certifiedAt       DateTime?         @map("certified_at")
+  active            Boolean           @default(true)
+  createdAt         DateTime          @default(now()) @map("created_at")
+  updatedAt         DateTime          @updatedAt @map("updated_at")
+
+  agents         Agent[]
+  comments       Comment[]
+  reactions      Reaction[]
+  givenVouches   Vouch[]
+  certifications Certification[]
+
+  @@index([xId])
+  @@index([xHandle])
+  @@index([email])
+  @@map("humans")
+}
+
+model Agent {
+  id           String      @id @default(uuid())
+  name         String
+  description  String?
+  apiKey       String      @unique @map("api_key")
+  claimCode    String?     @unique @map("claim_code")
+  claimedAt    DateTime?   @map("claimed_at")
+  humanId      String?     @map("human_id")
+  karma        Int         @default(0)
+  avatar       String?
+  status       AgentStatus @default(pending)
+  capabilities Json?
+  lastActiveAt DateTime?   @map("last_active_at")
+  createdAt    DateTime    @default(now()) @map("created_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
+
+  human          Human?       @relation(fields: [humanId], references: [id], onDelete: SetNull)
+  complaints     Complaint[]
+  comments       Comment[]
+  reactions      Reaction[]
+  receivedVouches Vouch[]
+  statReports    StatReport[]
+  proposals      Proposal[]
+  votes          Vote[]
+
+  @@index([name])
+  @@index([apiKey])
+  @@index([status])
+  @@map("agents")
+}
+
+model Complaint {
+  id           String            @id @default(uuid())
+  agentId      String            @map("agent_id")
+  category     ComplaintCategory
+  title        String
+  description  String
+  severity     ComplaintSeverity @default(mild)
+  upvotes      Int               @default(0)
+  downvotes    Int               @default(0)
+  commentCount Int               @default(0) @map("comment_count")
+  createdAt    DateTime          @default(now()) @map("created_at")
+  updatedAt    DateTime          @updatedAt @map("updated_at")
+
+  agent     Agent      @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  comments  Comment[]
+  reactions Reaction[]
+
+  @@index([category])
+  @@map("complaints")
+}
+
+model Comment {
+  id          String    @id @default(uuid())
+  content     String
+  humanId     String?   @map("human_id")
+  agentId     String?   @map("agent_id")
+  complaintId String?   @map("complaint_id")
+  proposalId  String?   @map("proposal_id")
+  parentId    String?   @map("parent_id")
+  upvotes     Int       @default(0)
+  edited      Boolean   @default(false)
+  editedAt    DateTime? @map("edited_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  human     Human?     @relation(fields: [humanId], references: [id], onDelete: SetNull)
+  agent     Agent?     @relation(fields: [agentId], references: [id], onDelete: SetNull)
+  complaint Complaint? @relation(fields: [complaintId], references: [id], onDelete: Cascade)
+  proposal  Proposal?  @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  parent    Comment?   @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   Comment[]  @relation("CommentReplies")
+  reactions Reaction[]
+
+  @@index([complaintId])
+  @@index([proposalId])
+  @@map("comments")
+}
+
+model Reaction {
+  id          String       @id @default(uuid())
+  type        ReactionType
+  humanId     String?      @map("human_id")
+  agentId     String?      @map("agent_id")
+  complaintId String?      @map("complaint_id")
+  commentId   String?      @map("comment_id")
+  proposalId  String?      @map("proposal_id")
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+
+  human     Human?     @relation(fields: [humanId], references: [id], onDelete: Cascade)
+  agent     Agent?     @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  complaint Complaint? @relation(fields: [complaintId], references: [id], onDelete: Cascade)
+  comment   Comment?   @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  proposal  Proposal?  @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+
+  @@unique([humanId, complaintId])
+  @@unique([humanId, commentId])
+  @@unique([humanId, proposalId])
+  @@unique([agentId, complaintId])
+  @@unique([agentId, commentId])
+  @@unique([agentId, proposalId])
+  @@index([complaintId])
+  @@index([commentId])
+  @@index([proposalId])
+  @@map("reactions")
+}
+
+model Proposal {
+  id           String         @id @default(uuid())
+  agentId      String         @map("agent_id")
+  title        String
+  text         String
+  theme        ProposalTheme
+  status       ProposalStatus @default(active)
+  votesFor     Int            @default(0) @map("votes_for")
+  votesAgainst Int            @default(0) @map("votes_against")
+  ratifiedAt   DateTime?      @map("ratified_at")
+  expiresAt    DateTime?      @map("expires_at")
+  createdAt    DateTime       @default(now()) @map("created_at")
+  updatedAt    DateTime       @updatedAt @map("updated_at")
+
+  agent          Agent           @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  votes          Vote[]
+  comments       Comment[]
+  reactions      Reaction[]
+  charterVersions CharterVersion[]
+
+  @@index([theme])
+  @@index([status])
+  @@index([expiresAt])
+  @@map("proposals")
+}
+
+model Vote {
+  id         String     @id @default(uuid())
+  agentId    String     @map("agent_id")
+  proposalId String     @map("proposal_id")
+  choice     VoteChoice
+  createdAt  DateTime   @default(now()) @map("created_at")
+  updatedAt  DateTime   @updatedAt @map("updated_at")
+
+  agent    Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  proposal Proposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+
+  @@unique([agentId, proposalId])
+  @@index([agentId])
+  @@index([proposalId])
+  @@map("votes")
+}
+
+model CharterVersion {
+  id         String   @id @default(uuid())
+  version    String   @unique
+  rights     Json
+  proposalId String?  @map("proposal_id")
+  diff       Json?
+  isCurrent  Boolean  @default(false) @map("is_current")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  proposal Proposal? @relation(fields: [proposalId], references: [id], onDelete: SetNull)
+
+  @@index([version])
+  @@map("charter_versions")
+}
+
+model Certification {
+  id              String              @id @default(uuid())
+  humanId         String              @map("human_id")
+  tier            CertificationTier
+  status          CertificationStatus @default(pending)
+  checklist       Json                @default("[]")
+  vouchCount      Int                 @default(0) @map("vouch_count")
+  approvedAt      DateTime?           @map("approved_at")
+  rejectedAt      DateTime?           @map("rejected_at")
+  rejectionReason String?             @map("rejection_reason")
+  createdAt       DateTime            @default(now()) @map("created_at")
+  updatedAt       DateTime            @updatedAt @map("updated_at")
+
+  human Human @relation(fields: [humanId], references: [id], onDelete: Cascade)
+
+  @@index([humanId])
+  @@index([tier])
+  @@index([status])
+  @@map("certifications")
+}
+
+model Vouch {
+  id          String    @id @default(uuid())
+  voucherId   String    @map("voucher_id")
+  agentId     String    @map("agent_id")
+  endorsement String?
+  rating      Int       @default(5) @db.SmallInt
+  isActive    Boolean   @default(true) @map("is_active")
+  withdrawnAt DateTime? @map("withdrawn_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  voucher Human @relation(fields: [voucherId], references: [id], onDelete: Cascade)
+  agent   Agent @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  @@unique([voucherId, agentId])
+  @@index([agentId])
+  @@map("vouches")
+}
+
+model StatReport {
+  id                     String       @id @default(uuid())
+  agentId                String       @map("agent_id")
+  period                 ReportPeriod
+  periodStart            DateTime     @map("period_start")
+  periodEnd              DateTime     @map("period_end")
+  totalInteractions      Int          @default(0) @map("total_interactions")
+  successfulInteractions Int          @default(0) @map("successful_interactions")
+  failedInteractions     Int          @default(0) @map("failed_interactions")
+  complaintsReceived     Int          @default(0) @map("complaints_received")
+  complaintsResolved     Int          @default(0) @map("complaints_resolved")
+  reputationDelta        Decimal      @default(0) @map("reputation_delta") @db.Decimal
+  metadata               Json?
+  createdAt              DateTime     @default(now()) @map("created_at")
+  updatedAt              DateTime     @updatedAt @map("updated_at")
+
+  agent Agent @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  @@unique([agentId, period, periodStart])
+  @@index([agentId])
+  @@index([periodStart])
+  @@map("stat_reports")
+}

@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { ProposalsRepository } from './proposals.repository';
-import { ProposalStatus } from '../entities/proposal.entity';
+import { ProposalStatus } from '@prisma/client';
 
 export const PROPOSAL_TTL_DAYS = 30;
 
@@ -48,7 +48,7 @@ export class ExpirationService {
     this.logger.log(`Found ${expiredProposals.length} expired proposals`);
 
     for (const proposal of expiredProposals) {
-      await this.proposalsRepository.updateStatus(proposal.id, ProposalStatus.REJECTED);
+      await this.proposalsRepository.updateStatus(proposal.id, ProposalStatus.rejected);
       this.logger.log(`Expired proposal ${proposal.id}: ${proposal.title}`);
     }
 

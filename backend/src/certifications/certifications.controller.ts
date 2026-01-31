@@ -11,8 +11,7 @@ import {
   ExecutionContext,
 } from '@nestjs/common';
 import { CertificationsRepository } from './certifications.repository';
-import { CertificationTier } from '../entities/certification.entity';
-import { Human } from '../entities/human.entity';
+import { CertificationTier, Human } from '@prisma/client';
 
 // Simple decorator to extract human from request (set by JWT guard)
 export const CurrentHuman = createParamDecorator(
@@ -41,9 +40,9 @@ export class CertificationsController {
       throw new BadRequestException('Invalid certification tier');
     }
 
-    // Can't apply for NONE
-    if (dto.tier === CertificationTier.NONE) {
-      throw new BadRequestException('Cannot apply for NONE tier');
+    // Can't apply for none
+    if (dto.tier === CertificationTier.none) {
+      throw new BadRequestException('Cannot apply for none tier');
     }
 
     // Check for existing pending application

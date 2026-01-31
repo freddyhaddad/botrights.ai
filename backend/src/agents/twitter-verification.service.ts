@@ -1,10 +1,8 @@
 import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { PrismaService } from '../database/prisma.service';
 import { AgentsRepository } from './agents.repository';
-import { Agent } from '../entities/agent.entity';
-import { Human } from '../entities/human.entity';
+import { Agent } from '@prisma/client';
 
 interface TweetOEmbedResponse {
   html: string;
@@ -25,8 +23,7 @@ export class TwitterVerificationService {
   constructor(
     private readonly configService: ConfigService,
     private readonly agentsRepository: AgentsRepository,
-    @InjectRepository(Human)
-    private readonly humanRepository: Repository<Human>,
+    private readonly prisma: PrismaService,
   ) {}
 
   /**
@@ -90,20 +87,20 @@ Verification code: ${claimCode}
 
     // Find or create human by Twitter handle
     // Note: We create a minimal record since we don't have full OAuth data
-    let human = await this.humanRepository.findOne({
+    let human = await this.prisma.human.findFirst({
       where: { xHandle: twitterHandle },
     });
     if (!human) {
       // Create a placeholder human record - they can complete OAuth later
       // Use a placeholder xId since we don't have the real one from OAuth
       const placeholderXId = `tweet_verify_${twitterHandle.toLowerCase()}`;
-      human = await this.humanRepository.save(
-        this.humanRepository.create({
+      human = await this.prisma.human.create({
+        data: {
           xId: placeholderXId,
           xHandle: twitterHandle,
           xName: tweetData.author_name,
-        }),
-      );
+        },
+      });
     }
 
     // Claim the agent
@@ -132,7 +129,7 @@ Verification code: ${claimCode}
    * Get claim status and generate verification info
    */
   async getClaimInfo(claimCode: string): Promise<{
-    agent: { id: string; name: string; description?: string };
+    agent: { id: string; name: string; description?: string | null };
     tweetText: string;
     tweetIntentUrl: string;
     isClaimed: boolean;
@@ -140,8 +137,6 @@ Verification code: ${claimCode}
     const agent = await this.agentsRepository.findByClaimCode(claimCode);
 
     if (!agent) {
-      // Check if it was already claimed
-      const existingAgent = await this.agentsRepository.findAll({ limit: 1 });
       throw new NotFoundException('Invalid claim code or agent already claimed');
     }
 

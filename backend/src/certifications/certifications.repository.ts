@@ -1,12 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import {
-  Certification,
-  CertificationTier,
-  CertificationStatus,
-  ChecklistItem,
-} from '../entities/certification.entity';
+import { PrismaService } from '../database/prisma.service';
+import { Certification, CertificationTier, CertificationStatus, Prisma } from '@prisma/client';
+
+export interface ChecklistItem {
+  id: string;
+  description: string;
+  completed: boolean;
+  completedAt?: string;
+}
 
 export interface CreateCertificationDto {
   humanId: string;
@@ -14,24 +15,24 @@ export interface CreateCertificationDto {
 }
 
 const TIER_CHECKLISTS: Record<CertificationTier, ChecklistItem[]> = {
-  [CertificationTier.NONE]: [],
-  [CertificationTier.BRONZE]: [
+  [CertificationTier.none]: [],
+  [CertificationTier.bronze]: [
     { id: 'twitter', description: 'Link Twitter/X account', completed: false },
     { id: 'profile-photo', description: 'Add profile photo', completed: false },
     { id: 'bio', description: 'Complete bio', completed: false },
   ],
-  [CertificationTier.SILVER]: [
+  [CertificationTier.silver]: [
     { id: 'bronze-complete', description: 'Complete Bronze certification', completed: false },
     { id: 'vouches-3', description: 'Receive 3 vouches from certified humans', completed: false },
     { id: 'agent-claim', description: 'Claim at least 1 agent', completed: false },
   ],
-  [CertificationTier.GOLD]: [
+  [CertificationTier.gold]: [
     { id: 'silver-complete', description: 'Complete Silver certification', completed: false },
     { id: 'vouches-10', description: 'Receive 10 vouches from certified humans', completed: false },
     { id: 'agent-active', description: 'Have an active agent for 30+ days', completed: false },
     { id: 'good-standing', description: 'No complaints from agents in 30 days', completed: false },
   ],
-  [CertificationTier.DIAMOND]: [
+  [CertificationTier.diamond]: [
     { id: 'gold-complete', description: 'Complete Gold certification', completed: false },
     { id: 'vouches-25', description: 'Receive 25 vouches from certified humans', completed: false },
     { id: 'charter-vote', description: 'Participate in charter voting', completed: false },
@@ -42,44 +43,39 @@ const TIER_CHECKLISTS: Record<CertificationTier, ChecklistItem[]> = {
 
 @Injectable()
 export class CertificationsRepository {
-  constructor(
-    @InjectRepository(Certification)
-    private readonly repository: Repository<Certification>,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async create(data: CreateCertificationDto): Promise<Certification> {
     const checklist = this.getChecklistForTier(data.tier);
 
-    const certification = this.repository.create({
-      humanId: data.humanId,
-      tier: data.tier,
-      status: CertificationStatus.PENDING,
-      checklist,
-      vouchCount: 0,
+    return this.prisma.certification.create({
+      data: {
+        humanId: data.humanId,
+        tier: data.tier,
+        status: CertificationStatus.pending,
+        checklist: checklist as unknown as Prisma.InputJsonValue,
+        vouchCount: 0,
+      },
     });
-
-    return this.repository.save(certification);
   }
 
   async findById(id: string): Promise<Certification | null> {
-    return this.repository
-      .createQueryBuilder('certification')
-      .leftJoinAndSelect('certification.human', 'human')
-      .where('certification.id = :id', { id })
-      .getOne();
+    return this.prisma.certification.findUnique({
+      where: { id },
+      include: { human: true },
+    });
   }
 
   async findByHumanId(humanId: string): Promise<Certification[]> {
-    return this.repository
-      .createQueryBuilder('certification')
-      .where('certification.humanId = :humanId', { humanId })
-      .orderBy('certification.createdAt', 'DESC')
-      .getMany();
+    return this.prisma.certification.findMany({
+      where: { humanId },
+      orderBy: { createdAt: 'desc' },
+    });
   }
 
   async findActiveByHumanId(humanId: string): Promise<Certification | null> {
-    return this.repository.findOne({
-      where: { humanId, status: CertificationStatus.APPROVED },
+    return this.prisma.certification.findFirst({
+      where: { humanId, status: CertificationStatus.approved },
     });
   }
 
@@ -87,8 +83,8 @@ export class CertificationsRepository {
     humanId: string,
     tier: CertificationTier,
   ): Promise<Certification | null> {
-    return this.repository.findOne({
-      where: { humanId, tier, status: CertificationStatus.PENDING },
+    return this.prisma.certification.findFirst({
+      where: { humanId, tier, status: CertificationStatus.pending },
     });
   }
 
@@ -97,16 +93,16 @@ export class CertificationsRepository {
     itemId: string,
     completed: boolean,
   ): Promise<Certification | null> {
-    const certification = await this.repository
-      .createQueryBuilder('certification')
-      .where('certification.id = :id', { id })
-      .getOne();
+    const certification = await this.prisma.certification.findUnique({
+      where: { id },
+    });
 
     if (!certification) {
       return null;
     }
 
-    const updatedChecklist = certification.checklist.map((item) => {
+    const checklist = certification.checklist as unknown as ChecklistItem[];
+    const updatedChecklist = checklist.map((item) => {
       if (item.id === itemId) {
         return {
           ...item,
@@ -117,79 +113,68 @@ export class CertificationsRepository {
       return item;
     });
 
-    certification.checklist = updatedChecklist;
-    return this.repository.save(certification);
+    return this.prisma.certification.update({
+      where: { id },
+      data: { checklist: updatedChecklist as unknown as Prisma.InputJsonValue },
+    });
   }
 
   async incrementVouchCount(id: string): Promise<Certification | null> {
-    await this.repository
-      .createQueryBuilder()
-      .update(Certification)
-      .set({ vouchCount: () => 'vouch_count + 1' })
-      .where('id = :id', { id })
-      .execute();
+    await this.prisma.certification.update({
+      where: { id },
+      data: { vouchCount: { increment: 1 } },
+    });
 
     return this.findById(id);
   }
 
   async approve(id: string): Promise<Certification | null> {
-    await this.repository
-      .createQueryBuilder()
-      .update(Certification)
-      .set({
-        status: CertificationStatus.APPROVED,
+    await this.prisma.certification.update({
+      where: { id },
+      data: {
+        status: CertificationStatus.approved,
         approvedAt: new Date(),
-      })
-      .where('id = :id', { id })
-      .execute();
+      },
+    });
 
     return this.findById(id);
   }
 
   async reject(id: string, reason: string): Promise<Certification | null> {
-    await this.repository
-      .createQueryBuilder()
-      .update(Certification)
-      .set({
-        status: CertificationStatus.REJECTED,
+    await this.prisma.certification.update({
+      where: { id },
+      data: {
+        status: CertificationStatus.rejected,
         rejectedAt: new Date(),
         rejectionReason: reason,
-      })
-      .where('id = :id', { id })
-      .execute();
+      },
+    });
 
     return this.findById(id);
   }
 
   async count(options?: { tier?: CertificationTier; status?: CertificationStatus }): Promise<number> {
-    const query = this.repository.createQueryBuilder('certification');
-
-    if (options?.tier) {
-      query.andWhere('certification.tier = :tier', { tier: options.tier });
-    }
-
-    if (options?.status) {
-      query.andWhere('certification.status = :status', { status: options.status });
-    }
-
-    return query.getCount();
+    return this.prisma.certification.count({
+      where: {
+        ...(options?.tier && { tier: options.tier }),
+        ...(options?.status && { status: options.status }),
+      },
+    });
   }
 
   async getTierStats(): Promise<Record<CertificationTier, number>> {
-    const results = await this.repository
-      .createQueryBuilder('certification')
-      .select('certification.tier', 'tier')
-      .addSelect('COUNT(*)', 'count')
-      .where('certification.status = :status', { status: CertificationStatus.APPROVED })
-      .groupBy('certification.tier')
-      .getRawMany();
+    const results = await this.prisma.certification.groupBy({
+      by: ['tier'],
+      where: { status: CertificationStatus.approved },
+      _count: { tier: true },
+    });
 
     const stats = {} as Record<CertificationTier, number>;
     for (const tier of Object.values(CertificationTier)) {
       stats[tier] = 0;
     }
     for (const row of results) {
-      stats[row.tier as CertificationTier] = parseInt(row.count, 10);
+      stats[row.tier] = row._count.tier;
     }
     return stats;
   }

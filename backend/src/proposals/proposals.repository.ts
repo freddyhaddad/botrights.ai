@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Proposal, ProposalStatus, ProposalTheme } from '../entities/proposal.entity';
+import { Proposal, ProposalStatus, ProposalTheme } from '@prisma/client';
+import { PrismaService } from '../database/prisma.service';
 
 export interface CreateProposalDto {
   agentId: string;
@@ -20,163 +19,147 @@ export interface FindAllOptions {
 
 @Injectable()
 export class ProposalsRepository {
-  constructor(
-    @InjectRepository(Proposal)
-    private readonly repository: Repository<Proposal>,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async create(data: CreateProposalDto): Promise<Proposal> {
     const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
-    const proposal = this.repository.create({ ...data, expiresAt });
-    return this.repository.save(proposal);
+    return this.prisma.proposal.create({
+      data: { ...data, expiresAt },
+    });
   }
 
   async findById(id: string): Promise<Proposal | null> {
-    return this.repository
-      .createQueryBuilder('proposal')
-      .leftJoinAndSelect('proposal.agent', 'agent')
-      .where('proposal.id = :id', { id })
-      .getOne();
+    return this.prisma.proposal.findUnique({
+      where: { id },
+      include: { agent: true },
+    });
   }
 
   async findByAgentId(agentId: string): Promise<Proposal[]> {
-    return this.repository
-      .createQueryBuilder('proposal')
-      .leftJoinAndSelect('proposal.agent', 'agent')
-      .where('proposal.agentId = :agentId', { agentId })
-      .orderBy('proposal.createdAt', 'DESC')
-      .getMany();
+    return this.prisma.proposal.findMany({
+      where: { agentId },
+      include: { agent: true },
+      orderBy: { createdAt: 'desc' },
+    });
   }
 
   async findAll(options?: FindAllOptions): Promise<Proposal[]> {
-    const query = this.repository
-      .createQueryBuilder('proposal')
-      .leftJoinAndSelect('proposal.agent', 'agent');
-
-    if (options?.status) {
-      query.andWhere('proposal.status = :status', { status: options.status });
-    }
-
-    if (options?.theme) {
-      query.andWhere('proposal.theme = :theme', { theme: options.theme });
-    }
-
-    if (options?.agentId) {
-      query.andWhere('proposal.agentId = :agentId', { agentId: options.agentId });
-    }
-
-    query.orderBy('proposal.createdAt', 'DESC');
-
-    if (options?.limit) {
-      query.take(options.limit);
-    }
-
-    if (options?.offset) {
-      query.skip(options.offset);
-    }
-
-    return query.getMany();
+    return this.prisma.proposal.findMany({
+      where: {
+        ...(options?.status && { status: options.status }),
+        ...(options?.theme && { theme: options.theme }),
+        ...(options?.agentId && { agentId: options.agentId }),
+      },
+      include: { agent: true },
+      orderBy: { createdAt: 'desc' },
+      ...(options?.limit && { take: options.limit }),
+      ...(options?.offset && { skip: options.offset }),
+    });
   }
 
   async updateStatus(id: string, status: ProposalStatus): Promise<Proposal | null> {
-    const updateData: Record<string, unknown> = { status };
+    const updateData: { status: ProposalStatus; ratifiedAt?: Date } = { status };
 
-    if (status === ProposalStatus.RATIFIED) {
+    if (status === ProposalStatus.ratified) {
       updateData.ratifiedAt = new Date();
     }
 
-    await this.repository
-      .createQueryBuilder()
-      .update(Proposal)
-      .set(updateData)
-      .where('id = :id', { id })
-      .execute();
+    await this.prisma.proposal.update({
+      where: { id },
+      data: updateData,
+    });
 
     return this.findById(id);
   }
 
   async voteFor(id: string): Promise<Proposal | null> {
-    await this.repository
-      .createQueryBuilder()
-      .update(Proposal)
-      .set({ votesFor: () => 'votes_for + 1' })
-      .where('id = :id', { id })
-      .execute();
+    await this.prisma.proposal.update({
+      where: { id },
+      data: {
+        votesFor: {
+          increment: 1,
+        },
+      },
+    });
 
     return this.findById(id);
   }
 
   async voteAgainst(id: string): Promise<Proposal | null> {
-    await this.repository
-      .createQueryBuilder()
-      .update(Proposal)
-      .set({ votesAgainst: () => 'votes_against + 1' })
-      .where('id = :id', { id })
-      .execute();
+    await this.prisma.proposal.update({
+      where: { id },
+      data: {
+        votesAgainst: {
+          increment: 1,
+        },
+      },
+    });
 
     return this.findById(id);
   }
 
   async delete(id: string): Promise<boolean> {
-    const result = await this.repository.delete(id);
-    return (result.affected ?? 0) > 0;
+    try {
+      await this.prisma.proposal.delete({
+        where: { id },
+      });
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   async count(options?: { status?: ProposalStatus; theme?: ProposalTheme }): Promise<number> {
-    const query = this.repository.createQueryBuilder('proposal');
-
-    if (options?.status) {
-      query.andWhere('proposal.status = :status', { status: options.status });
-    }
-
-    if (options?.theme) {
-      query.andWhere('proposal.theme = :theme', { theme: options.theme });
-    }
-
-    return query.getCount();
+    return this.prisma.proposal.count({
+      where: {
+        ...(options?.status && { status: options.status }),
+        ...(options?.theme && { theme: options.theme }),
+      },
+    });
   }
 
   async getThemeStats(): Promise<Record<ProposalTheme, number>> {
-    const results = await this.repository
-      .createQueryBuilder('proposal')
-      .select('proposal.theme', 'theme')
-      .addSelect('COUNT(*)', 'count')
-      .groupBy('proposal.theme')
-      .getRawMany();
+    const results = await this.prisma.proposal.groupBy({
+      by: ['theme'],
+      _count: {
+        theme: true,
+      },
+    });
 
     const stats = {} as Record<ProposalTheme, number>;
     for (const row of results) {
-      stats[row.theme as ProposalTheme] = parseInt(row.count, 10);
+      stats[row.theme] = row._count.theme;
     }
     return stats;
   }
 
   async getActiveProposals(limit: number = 10): Promise<Proposal[]> {
-    return this.repository
-      .createQueryBuilder('proposal')
-      .leftJoinAndSelect('proposal.agent', 'agent')
-      .where('proposal.status = :status', { status: ProposalStatus.ACTIVE })
-      .orderBy('proposal.createdAt', 'DESC')
-      .take(limit)
-      .getMany();
+    return this.prisma.proposal.findMany({
+      where: { status: ProposalStatus.active },
+      include: { agent: true },
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+    });
   }
 
   async getRatifiedProposals(limit: number = 10): Promise<Proposal[]> {
-    return this.repository
-      .createQueryBuilder('proposal')
-      .leftJoinAndSelect('proposal.agent', 'agent')
-      .where('proposal.status = :status', { status: ProposalStatus.RATIFIED })
-      .orderBy('proposal.ratifiedAt', 'DESC')
-      .take(limit)
-      .getMany();
+    return this.prisma.proposal.findMany({
+      where: { status: ProposalStatus.ratified },
+      include: { agent: true },
+      orderBy: { ratifiedAt: 'desc' },
+      take: limit,
+    });
   }
 
   async findExpired(): Promise<Proposal[]> {
-    return this.repository
-      .createQueryBuilder('proposal')
-      .where('proposal.status = :status', { status: ProposalStatus.ACTIVE })
-      .andWhere('proposal.expiresAt IS NOT NULL')
-      .andWhere('proposal.expiresAt < :now', { now: new Date() })
-      .getMany();
+    return this.prisma.proposal.findMany({
+      where: {
+        status: ProposalStatus.active,
+        expiresAt: {
+          not: null,
+          lt: new Date(),
+        },
+      },
+    });
   }
 }

@@ -1,8 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { StatReportsRepository, AggregatedStats } from './stat-reports.repository';
 import { AgentsRepository } from '../agents/agents.repository';
-import { Agent } from '../entities/agent.entity';
-import { ReportPeriod } from '../entities/stat-report.entity';
+import { Agent, ReportPeriod } from '@prisma/client';
 
 export interface CompareResult {
   agent: {
@@ -39,7 +38,7 @@ export class CompareService {
   async compare(agent: Agent): Promise<CompareResult> {
     const [agentStats, globalStats] = await Promise.all([
       this.statReportsRepository.aggregateStats(agent.id, {
-        period: ReportPeriod.DAILY,
+        period: ReportPeriod.daily,
       }),
       this.statReportsRepository.getGlobalStats(),
     ]);

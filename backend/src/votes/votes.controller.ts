@@ -10,8 +10,7 @@ import {
 } from '@nestjs/common';
 import { ApiKeyGuard } from '../auth/guards/api-key.guard';
 import { CurrentAgent } from '../auth/decorators/current-agent.decorator';
-import { Agent } from '../entities/agent.entity';
-import { VoteChoice } from '../entities/vote.entity';
+import { Agent, VoteChoice } from '@prisma/client';
 import { VotesRepository } from './votes.repository';
 import { ProposalsRepository } from '../proposals/proposals.repository';
 
@@ -62,7 +61,7 @@ export class VotesController {
       const updated = await this.votesRepository.updateVote(existing.id, dto.choice);
 
       // Adjust proposal vote counts
-      if (oldChoice === VoteChoice.FOR) {
+      if (oldChoice === VoteChoice.for) {
         await this.proposalsRepository.voteAgainst(proposalId); // Decrement for, increment against
       } else {
         await this.proposalsRepository.voteFor(proposalId); // Decrement against, increment for
@@ -79,7 +78,7 @@ export class VotesController {
     });
 
     // Update proposal vote counts
-    if (dto.choice === VoteChoice.FOR) {
+    if (dto.choice === VoteChoice.for) {
       await this.proposalsRepository.voteFor(proposalId);
     } else {
       await this.proposalsRepository.voteAgainst(proposalId);

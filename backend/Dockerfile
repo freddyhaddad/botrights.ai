@@ -19,7 +19,7 @@ COPY backend ./backend
 WORKDIR /app/packages/shared
 RUN npm run build
 
-# Build backend
+# Build backend (includes Prisma generate)
 WORKDIR /app/backend
 RUN npm run build
 
@@ -45,6 +45,18 @@ COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
 COPY --from=builder /app/packages/shared/package.json ./packages/shared/
 COPY --from=builder /app/backend/dist ./backend/dist
 
+# Copy Prisma schema, config, and migrations for runtime
+COPY --from=builder /app/backend/prisma ./backend/prisma
+COPY --from=builder /app/backend/prisma.config.ts ./backend/
+
+# Copy generated Prisma client
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/node_modules/@prisma/client ./node_modules/@prisma/client
+COPY --from=builder /app/node_modules/@prisma/adapter-pg ./node_modules/@prisma/adapter-pg
+
+# Copy Prisma binary for migrations
+COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
+
 # Set ownership
 RUN chown -R nestjs:nodejs /app
 
@@ -66,9 +78,11 @@ ENV PORT=3000
 
 EXPOSE 3000
 
+WORKDIR /app/backend
+
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/ || exit 1
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/health || exit 1
 
-# Start the server
-CMD ["node", "backend/dist/main.js"]
+# Start the server (run migrations first)
+CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main.js"]

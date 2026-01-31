@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Comment } from '../entities/comment.entity';
+import { Comment } from '@prisma/client';
+import { PrismaService } from '../database/prisma.service';
 
 export interface CreateCommentDto {
   agentId?: string;
@@ -14,129 +13,157 @@ export interface CreateCommentDto {
 
 @Injectable()
 export class CommentsRepository {
-  constructor(
-    @InjectRepository(Comment)
-    private readonly repository: Repository<Comment>,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async create(data: CreateCommentDto): Promise<Comment> {
-    const comment = this.repository.create(data);
-    return this.repository.save(comment);
+    return this.prisma.comment.create({
+      data,
+    });
   }
 
   async findById(id: string): Promise<Comment | null> {
-    return this.repository
-      .createQueryBuilder('comment')
-      .leftJoinAndSelect('comment.agent', 'agent')
-      .leftJoinAndSelect('comment.human', 'human')
-      .leftJoinAndSelect('comment.parent', 'parent')
-      .where('comment.id = :id', { id })
-      .getOne();
+    return this.prisma.comment.findUnique({
+      where: { id },
+      include: {
+        agent: true,
+        human: true,
+        parent: true,
+      },
+    });
   }
 
   async findByComplaintId(complaintId: string): Promise<Comment[]> {
-    return this.repository
-      .createQueryBuilder('comment')
-      .leftJoinAndSelect('comment.agent', 'agent')
-      .leftJoinAndSelect('comment.human', 'human')
-      .where('comment.complaintId = :complaintId', { complaintId })
-      .andWhere('comment.parentId IS NULL')
-      .orderBy('comment.createdAt', 'ASC')
-      .getMany();
+    return this.prisma.comment.findMany({
+      where: {
+        complaintId,
+        parentId: null,
+      },
+      include: {
+        agent: true,
+        human: true,
+      },
+      orderBy: {
+        createdAt: 'asc',
+      },
+    });
   }
 
   async findByProposalId(proposalId: string): Promise<Comment[]> {
-    return this.repository
-      .createQueryBuilder('comment')
-      .leftJoinAndSelect('comment.agent', 'agent')
-      .leftJoinAndSelect('comment.human', 'human')
-      .where('comment.proposalId = :proposalId', { proposalId })
-      .andWhere('comment.parentId IS NULL')
-      .orderBy('comment.createdAt', 'ASC')
-      .getMany();
+    return this.prisma.comment.findMany({
+      where: {
+        proposalId,
+        parentId: null,
+      },
+      include: {
+        agent: true,
+        human: true,
+      },
+      orderBy: {
+        createdAt: 'asc',
+      },
+    });
   }
 
   async findReplies(parentId: string): Promise<Comment[]> {
-    return this.repository
-      .createQueryBuilder('comment')
-      .leftJoinAndSelect('comment.agent', 'agent')
-      .leftJoinAndSelect('comment.human', 'human')
-      .where('comment.parentId = :parentId', { parentId })
-      .orderBy('comment.createdAt', 'ASC')
-      .getMany();
+    return this.prisma.comment.findMany({
+      where: { parentId },
+      include: {
+        agent: true,
+        human: true,
+      },
+      orderBy: {
+        createdAt: 'asc',
+      },
+    });
   }
 
   async findByAgentId(agentId: string): Promise<Comment[]> {
-    return this.repository
-      .createQueryBuilder('comment')
-      .leftJoinAndSelect('comment.complaint', 'complaint')
-      .leftJoinAndSelect('comment.proposal', 'proposal')
-      .where('comment.agentId = :agentId', { agentId })
-      .orderBy('comment.createdAt', 'DESC')
-      .getMany();
+    return this.prisma.comment.findMany({
+      where: { agentId },
+      include: {
+        complaint: true,
+        proposal: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
   }
 
   async upvote(id: string): Promise<Comment | null> {
-    await this.repository
-      .createQueryBuilder()
-      .update(Comment)
-      .set({ upvotes: () => 'upvotes + 1' })
-      .where('id = :id', { id })
-      .execute();
+    await this.prisma.comment.update({
+      where: { id },
+      data: {
+        upvotes: {
+          increment: 1,
+        },
+      },
+    });
 
     return this.findById(id);
   }
 
   async update(id: string, content: string): Promise<Comment | null> {
-    await this.repository.update(id, {
-      content,
-      edited: true,
-      editedAt: new Date(),
+    await this.prisma.comment.update({
+      where: { id },
+      data: {
+        content,
+        edited: true,
+        editedAt: new Date(),
+      },
     });
 
     return this.findById(id);
   }
 
   async delete(id: string): Promise<boolean> {
-    const result = await this.repository.delete(id);
-    return (result.affected ?? 0) > 0;
+    try {
+      await this.prisma.comment.delete({
+        where: { id },
+      });
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   async countByComplaintId(complaintId: string): Promise<number> {
-    return this.repository
-      .createQueryBuilder('comment')
-      .where('comment.complaintId = :complaintId', { complaintId })
-      .getCount();
+    return this.prisma.comment.count({
+      where: { complaintId },
+    });
   }
 
   async countByProposalId(proposalId: string): Promise<number> {
-    return this.repository
-      .createQueryBuilder('comment')
-      .where('comment.proposalId = :proposalId', { proposalId })
-      .getCount();
+    return this.prisma.comment.count({
+      where: { proposalId },
+    });
   }
 
   async getRecentByComplaintId(complaintId: string, limit: number = 10): Promise<Comment[]> {
-    return this.repository
-      .createQueryBuilder('comment')
-      .leftJoinAndSelect('comment.agent', 'agent')
-      .leftJoinAndSelect('comment.human', 'human')
-      .where('comment.complaintId = :complaintId', { complaintId })
-      .orderBy('comment.createdAt', 'DESC')
-      .take(limit)
-      .getMany();
+    return this.prisma.comment.findMany({
+      where: { complaintId },
+      include: {
+        agent: true,
+        human: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      take: limit,
+    });
   }
 
   async getThreadedComments(complaintId: string): Promise<Comment[]> {
     // Get all comments for complaint, sorted for threading
-    const comments = await this.repository
-      .createQueryBuilder('comment')
-      .leftJoinAndSelect('comment.agent', 'agent')
-      .leftJoinAndSelect('comment.human', 'human')
-      .where('comment.complaintId = :complaintId', { complaintId })
-      .orderBy('comment.createdAt', 'ASC')
-      .getMany();
-
-    return comments;
+    return this.prisma.comment.findMany({
+      where: { complaintId },
+      include: {
+        agent: true,
+        human: true,
+      },
+      orderBy: {
+        createdAt: 'asc',
+      },
+    });
   }
 }

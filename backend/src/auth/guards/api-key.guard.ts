@@ -5,7 +5,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { AgentsRepository } from '../../agents/agents.repository';
-import { AgentStatus } from '../../entities/agent.entity';
+import { AgentStatus } from '@prisma/client';
 
 @Injectable()
 export class ApiKeyGuard implements CanActivate {
@@ -36,11 +36,11 @@ export class ApiKeyGuard implements CanActivate {
     }
 
     // Check agent status - only allow active and pending agents
-    if (agent.status === AgentStatus.SUSPENDED) {
+    if (agent.status === AgentStatus.suspended) {
       throw new UnauthorizedException('Agent account is suspended');
     }
 
-    if (agent.status === AgentStatus.REVOKED) {
+    if (agent.status === AgentStatus.revoked) {
       throw new UnauthorizedException('Agent account has been revoked');
     }
 

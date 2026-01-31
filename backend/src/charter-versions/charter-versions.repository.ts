@@ -1,7 +1,19 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { CharterVersion, CharterRight, CharterDiff } from '../entities/charter-version.entity';
+import { PrismaService } from '../database/prisma.service';
+import { CharterVersion, Prisma } from '@prisma/client';
+
+export interface CharterRight {
+  id: string;
+  title: string;
+  text: string;
+  theme: string;
+}
+
+export interface CharterDiff {
+  added: CharterRight[];
+  removed: CharterRight[];
+  modified: { before: CharterRight; after: CharterRight }[];
+}
 
 export interface CreateCharterVersionDto {
   rights: CharterRight[];
@@ -10,72 +22,66 @@ export interface CreateCharterVersionDto {
 
 @Injectable()
 export class CharterVersionsRepository {
-  constructor(
-    @InjectRepository(CharterVersion)
-    private readonly repository: Repository<CharterVersion>,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async create(data: CreateCharterVersionDto): Promise<CharterVersion> {
     // Get the latest version to determine next version number
-    const latest = await this.repository
-      .createQueryBuilder('charter_version')
-      .orderBy('charter_version.createdAt', 'DESC')
-      .getOne();
+    const latest = await this.prisma.charterVersion.findFirst({
+      orderBy: { createdAt: 'desc' },
+    });
 
     const nextVersion = this.incrementVersion(latest?.version);
-    const diff = latest ? this.computeDiff(latest.rights, data.rights) : undefined;
+    const latestRights = latest?.rights as CharterRight[] | undefined;
+    const diff = latestRights ? this.computeDiff(latestRights, data.rights) : undefined;
 
     // Unmark previous current version
     if (latest?.isCurrent) {
-      await this.repository
-        .createQueryBuilder()
-        .update(CharterVersion)
-        .set({ isCurrent: false })
-        .where('isCurrent = :isCurrent', { isCurrent: true })
-        .execute();
+      await this.prisma.charterVersion.updateMany({
+        where: { isCurrent: true },
+        data: { isCurrent: false },
+      });
     }
 
-    const version = this.repository.create({
-      version: nextVersion,
-      rights: data.rights,
-      proposalId: data.proposalId,
-      diff,
-      isCurrent: true,
+    return this.prisma.charterVersion.create({
+      data: {
+        version: nextVersion,
+        rights: data.rights as unknown as Prisma.InputJsonValue,
+        proposalId: data.proposalId,
+        diff: diff as unknown as Prisma.InputJsonValue | undefined,
+        isCurrent: true,
+      },
     });
-
-    return this.repository.save(version);
   }
 
   async findCurrent(): Promise<CharterVersion | null> {
-    return this.repository.findOne({
+    return this.prisma.charterVersion.findFirst({
       where: { isCurrent: true },
     });
   }
 
   async findByVersion(version: string): Promise<CharterVersion | null> {
-    return this.repository.findOne({
+    return this.prisma.charterVersion.findUnique({
       where: { version },
-      relations: ['proposal'],
+      include: { proposal: true },
     });
   }
 
   async findById(id: string): Promise<CharterVersion | null> {
-    return this.repository.findOne({
+    return this.prisma.charterVersion.findUnique({
       where: { id },
-      relations: ['proposal'],
+      include: { proposal: true },
     });
   }
 
   async findAll(): Promise<CharterVersion[]> {
-    return this.repository
-      .createQueryBuilder('charter_version')
-      .leftJoinAndSelect('charter_version.proposal', 'proposal')
-      .orderBy('charter_version.createdAt', 'DESC')
-      .getMany();
+    return this.prisma.charterVersion.findMany({
+      include: { proposal: true },
+      orderBy: { createdAt: 'desc' },
+    });
   }
 
   async count(): Promise<number> {
-    return this.repository.createQueryBuilder('charter_version').getCount();
+    return this.prisma.charterVersion.count();
   }
 
   private incrementVersion(currentVersion?: string): string {

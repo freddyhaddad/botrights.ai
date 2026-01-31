@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Reaction, ReactionType } from '../entities/reaction.entity';
+import { Reaction, ReactionType } from '@prisma/client';
+import { PrismaService } from '../database/prisma.service';
 
 export interface ToggleResult {
   reaction: Reaction | null;
@@ -19,16 +18,13 @@ export interface ReactionCounts {
 
 @Injectable()
 export class ReactionsRepository {
-  constructor(
-    @InjectRepository(Reaction)
-    private readonly repository: Repository<Reaction>,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async findByAgentAndComplaint(
     agentId: string,
     complaintId: string,
   ): Promise<Reaction | null> {
-    return this.repository.findOne({
+    return this.prisma.reaction.findFirst({
       where: { agentId, complaintId },
     });
   }
@@ -42,24 +38,29 @@ export class ReactionsRepository {
 
     if (!existing) {
       // Create new reaction
-      const reaction = this.repository.create({
-        agentId,
-        complaintId,
-        type,
+      const reaction = await this.prisma.reaction.create({
+        data: {
+          agentId,
+          complaintId,
+          type,
+        },
       });
-      const saved = await this.repository.save(reaction);
-      return { reaction: saved, action: 'added' };
+      return { reaction, action: 'added' };
     }
 
     if (existing.type === type) {
       // Remove reaction (toggle off)
-      await this.repository.delete(existing.id);
+      await this.prisma.reaction.delete({
+        where: { id: existing.id },
+      });
       return { reaction: null, action: 'removed' };
     }
 
     // Change reaction type
-    existing.type = type;
-    const updated = await this.repository.save(existing);
+    const updated = await this.prisma.reaction.update({
+      where: { id: existing.id },
+      data: { type },
+    });
     return { reaction: updated, action: 'changed' };
   }
 
@@ -74,7 +75,7 @@ export class ReactionsRepository {
     };
 
     for (const type of Object.values(ReactionType)) {
-      counts[type] = await this.repository.count({
+      counts[type] = await this.prisma.reaction.count({
         where: { complaintId, type },
       });
     }
@@ -83,9 +84,9 @@ export class ReactionsRepository {
   }
 
   async findByComplaint(complaintId: string): Promise<Reaction[]> {
-    return this.repository.find({
+    return this.prisma.reaction.findMany({
       where: { complaintId },
-      relations: ['agent'],
+      include: { agent: true },
     });
   }
 }

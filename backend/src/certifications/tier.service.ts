@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { CertificationsRepository } from './certifications.repository';
+import { CertificationsRepository, ChecklistItem } from './certifications.repository';
 import { HumansRepository } from '../humans/humans.repository';
 import { ComplaintsRepository } from '../complaints/complaints.repository';
-import { CertificationTier } from '../entities/certification.entity';
+import { CertificationTier } from '@prisma/client';
 
 interface TierRequirements {
   minVouches: number;
@@ -12,28 +12,28 @@ interface TierRequirements {
 }
 
 const TIER_REQUIREMENTS: Record<CertificationTier, TierRequirements> = {
-  [CertificationTier.NONE]: {
+  [CertificationTier.none]: {
     minVouches: 0,
     minDays: 0,
     requiresComplaintFree: false,
   },
-  [CertificationTier.BRONZE]: {
+  [CertificationTier.bronze]: {
     minVouches: 1,
     minDays: 0,
     requiresComplaintFree: false,
   },
-  [CertificationTier.SILVER]: {
+  [CertificationTier.silver]: {
     minVouches: 3,
     minDays: 30,
     requiresComplaintFree: false,
   },
-  [CertificationTier.GOLD]: {
+  [CertificationTier.gold]: {
     minVouches: 10,
     minDays: 90,
     requiresComplaintFree: true,
     complaintFreeDays: 30,
   },
-  [CertificationTier.DIAMOND]: {
+  [CertificationTier.diamond]: {
     minVouches: 25,
     minDays: 90,
     requiresComplaintFree: true,
@@ -79,7 +79,8 @@ export class TierService {
     const requirements = TIER_REQUIREMENTS[targetTier];
 
     // Check checklist completion
-    const checklistComplete = pendingCert.checklist.every((item) => item.completed);
+    const checklist = pendingCert.checklist as unknown as ChecklistItem[];
+    const checklistComplete = checklist.every((item) => item.completed);
     if (!checklistComplete) {
       missing.push('checklist');
     }

@@ -16,9 +16,8 @@ import {
 } from '@nestjs/common';
 import { ApiKeyGuard } from '../auth/guards/api-key.guard';
 import { CurrentAgent } from '../auth/decorators/current-agent.decorator';
-import { Agent } from '../entities/agent.entity';
+import { Agent, ComplaintCategory, ComplaintSeverity } from '@prisma/client';
 import { ComplaintsRepository, CreateComplaintDto, FindAllOptions } from './complaints.repository';
-import { ComplaintCategory, ComplaintSeverity } from '../entities/complaint.entity';
 
 interface FileComplaintDto {
   category: ComplaintCategory;
@@ -67,7 +66,7 @@ export class ComplaintsController {
       category: dto.category,
       title: dto.title.trim(),
       description: dto.description.trim(),
-      severity: dto.severity || ComplaintSeverity.MILD,
+      severity: dto.severity || ComplaintSeverity.mild,
     };
 
     // Create the complaint

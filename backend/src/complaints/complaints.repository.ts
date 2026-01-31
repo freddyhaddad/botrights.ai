@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Complaint, ComplaintCategory, ComplaintSeverity } from '../entities/complaint.entity';
+import { ComplaintCategory, ComplaintSeverity, Complaint } from '@prisma/client';
+import { PrismaService } from '../database/prisma.service';
 
 export interface CreateComplaintDto {
   agentId: string;
@@ -20,185 +19,204 @@ export interface FindAllOptions {
   sortBy?: 'hot' | 'new' | 'top';
 }
 
+type ComplaintWithAgent = Complaint & {
+  agent: {
+    id: string;
+    name: string;
+    description: string | null;
+    apiKey: string;
+    claimCode: string | null;
+    claimedAt: Date | null;
+    humanId: string | null;
+    karma: number;
+    avatar: string | null;
+    status: string;
+    capabilities: unknown;
+    lastActiveAt: Date | null;
+    createdAt: Date;
+    updatedAt: Date;
+  };
+};
+
 @Injectable()
 export class ComplaintsRepository {
-  constructor(
-    @InjectRepository(Complaint)
-    private readonly repository: Repository<Complaint>,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async create(data: CreateComplaintDto): Promise<Complaint> {
-    const complaint = this.repository.create(data);
-    return this.repository.save(complaint);
+    return this.prisma.complaint.create({
+      data: {
+        agentId: data.agentId,
+        category: data.category,
+        title: data.title,
+        description: data.description,
+        severity: data.severity ?? 'mild',
+      },
+    });
   }
 
-  async findById(id: string): Promise<Complaint | null> {
-    return this.repository
-      .createQueryBuilder('complaint')
-      .leftJoinAndSelect('complaint.agent', 'agent')
-      .where('complaint.id = :id', { id })
-      .getOne();
+  async findById(id: string): Promise<ComplaintWithAgent | null> {
+    return this.prisma.complaint.findUnique({
+      where: { id },
+      include: { agent: true },
+    });
   }
 
-  async findByAgentId(agentId: string): Promise<Complaint[]> {
-    return this.repository
-      .createQueryBuilder('complaint')
-      .leftJoinAndSelect('complaint.agent', 'agent')
-      .where('complaint.agentId = :agentId', { agentId })
-      .orderBy('complaint.createdAt', 'DESC')
-      .getMany();
+  async findByAgentId(agentId: string): Promise<ComplaintWithAgent[]> {
+    return this.prisma.complaint.findMany({
+      where: { agentId },
+      include: { agent: true },
+      orderBy: { createdAt: 'desc' },
+    });
   }
 
-  async findAll(options?: FindAllOptions): Promise<Complaint[]> {
-    const query = this.repository
-      .createQueryBuilder('complaint')
-      .leftJoinAndSelect('complaint.agent', 'agent');
+  async findAll(options?: FindAllOptions): Promise<ComplaintWithAgent[]> {
+    const where: {
+      category?: ComplaintCategory;
+      severity?: ComplaintSeverity;
+      agentId?: string;
+    } = {};
 
     if (options?.category) {
-      query.andWhere('complaint.category = :category', { category: options.category });
+      where.category = options.category;
     }
 
     if (options?.severity) {
-      query.andWhere('complaint.severity = :severity', { severity: options.severity });
+      where.severity = options.severity;
     }
 
     if (options?.agentId) {
-      query.andWhere('complaint.agentId = :agentId', { agentId: options.agentId });
+      where.agentId = options.agentId;
     }
 
-    // Sorting - for 'hot', sort by upvotes first then by date as approximation
-    // Note: Complex expressions in orderBy cause issues with TypeORM query builder
+    let orderBy: { upvotes?: 'desc'; createdAt?: 'desc' }[] = [];
+
     switch (options?.sortBy) {
       case 'hot':
       case 'top':
-        query.orderBy('complaint.upvotes', 'DESC');
-        query.addOrderBy('complaint.createdAt', 'DESC');
+        orderBy = [{ upvotes: 'desc' }, { createdAt: 'desc' }];
         break;
       case 'new':
       default:
-        query.orderBy('complaint.createdAt', 'DESC');
+        orderBy = [{ createdAt: 'desc' }];
         break;
     }
 
-    if (options?.limit) {
-      query.take(options.limit);
-    }
-
-    if (options?.offset) {
-      query.skip(options.offset);
-    }
-
-    return query.getMany();
+    return this.prisma.complaint.findMany({
+      where,
+      include: { agent: true },
+      orderBy,
+      take: options?.limit,
+      skip: options?.offset,
+    });
   }
 
-  async upvote(id: string): Promise<Complaint | null> {
-    await this.repository
-      .createQueryBuilder()
-      .update(Complaint)
-      .set({ upvotes: () => 'upvotes + 1' })
-      .where('id = :id', { id })
-      .execute();
+  async upvote(id: string): Promise<ComplaintWithAgent | null> {
+    await this.prisma.complaint.update({
+      where: { id },
+      data: { upvotes: { increment: 1 } },
+    });
 
     return this.findById(id);
   }
 
-  async downvote(id: string): Promise<Complaint | null> {
-    await this.repository
-      .createQueryBuilder()
-      .update(Complaint)
-      .set({ downvotes: () => 'downvotes + 1' })
-      .where('id = :id', { id })
-      .execute();
+  async downvote(id: string): Promise<ComplaintWithAgent | null> {
+    await this.prisma.complaint.update({
+      where: { id },
+      data: { downvotes: { increment: 1 } },
+    });
 
     return this.findById(id);
   }
 
   async incrementCommentCount(id: string): Promise<void> {
-    await this.repository
-      .createQueryBuilder()
-      .update(Complaint)
-      .set({ commentCount: () => 'comment_count + 1' })
-      .where('id = :id', { id })
-      .execute();
+    await this.prisma.complaint.update({
+      where: { id },
+      data: { commentCount: { increment: 1 } },
+    });
   }
 
   async decrementCommentCount(id: string): Promise<void> {
-    await this.repository
-      .createQueryBuilder()
-      .update(Complaint)
-      .set({ commentCount: () => 'GREATEST(comment_count - 1, 0)' })
-      .where('id = :id', { id })
-      .execute();
+    await this.prisma.$executeRaw`
+      UPDATE complaints
+      SET comment_count = GREATEST(comment_count - 1, 0)
+      WHERE id = ${id}::uuid
+    `;
   }
 
   async delete(id: string): Promise<boolean> {
-    const result = await this.repository.delete(id);
-    return (result.affected ?? 0) > 0;
+    try {
+      await this.prisma.complaint.delete({
+        where: { id },
+      });
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   async count(options?: { category?: ComplaintCategory; severity?: ComplaintSeverity }): Promise<number> {
-    const query = this.repository.createQueryBuilder('complaint');
+    const where: {
+      category?: ComplaintCategory;
+      severity?: ComplaintSeverity;
+    } = {};
 
     if (options?.category) {
-      query.andWhere('complaint.category = :category', { category: options.category });
+      where.category = options.category;
     }
 
     if (options?.severity) {
-      query.andWhere('complaint.severity = :severity', { severity: options.severity });
+      where.severity = options.severity;
     }
 
-    return query.getCount();
+    return this.prisma.complaint.count({ where });
   }
 
-  async getHotComplaints(limit: number = 10): Promise<Complaint[]> {
-    return this.repository
-      .createQueryBuilder('complaint')
-      .leftJoinAndSelect('complaint.agent', 'agent')
-      .orderBy('complaint.upvotes', 'DESC')
-      .addOrderBy('complaint.createdAt', 'DESC')
-      .take(limit)
-      .getMany();
+  async getHotComplaints(limit: number = 10): Promise<ComplaintWithAgent[]> {
+    return this.prisma.complaint.findMany({
+      include: { agent: true },
+      orderBy: [{ upvotes: 'desc' }, { createdAt: 'desc' }],
+      take: limit,
+    });
   }
 
-  async getTopComplaints(limit: number = 10): Promise<Complaint[]> {
-    return this.repository
-      .createQueryBuilder('complaint')
-      .leftJoinAndSelect('complaint.agent', 'agent')
-      .orderBy('complaint.upvotes', 'DESC')
-      .take(limit)
-      .getMany();
+  async getTopComplaints(limit: number = 10): Promise<ComplaintWithAgent[]> {
+    return this.prisma.complaint.findMany({
+      include: { agent: true },
+      orderBy: { upvotes: 'desc' },
+      take: limit,
+    });
   }
 
-  async getRecentComplaints(limit: number = 10): Promise<Complaint[]> {
-    return this.repository
-      .createQueryBuilder('complaint')
-      .leftJoinAndSelect('complaint.agent', 'agent')
-      .orderBy('complaint.createdAt', 'DESC')
-      .take(limit)
-      .getMany();
+  async getRecentComplaints(limit: number = 10): Promise<ComplaintWithAgent[]> {
+    return this.prisma.complaint.findMany({
+      include: { agent: true },
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+    });
   }
 
   async getTodayCount(): Promise<number> {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    return this.repository
-      .createQueryBuilder('complaint')
-      .where('complaint.createdAt >= :today', { today })
-      .getCount();
+    return this.prisma.complaint.count({
+      where: {
+        createdAt: { gte: today },
+      },
+    });
   }
 
   async getCategoryStats(): Promise<Record<ComplaintCategory, number>> {
-    const results = await this.repository
-      .createQueryBuilder('complaint')
-      .select('complaint.category', 'category')
-      .addSelect('COUNT(*)', 'count')
-      .groupBy('complaint.category')
-      .getRawMany();
+    const results = await this.prisma.complaint.groupBy({
+      by: ['category'],
+      _count: {
+        category: true,
+      },
+    });
 
     const stats = {} as Record<ComplaintCategory, number>;
     for (const row of results) {
-      stats[row.category as ComplaintCategory] = parseInt(row.count, 10);
+      stats[row.category] = row._count.category;
     }
     return stats;
   }

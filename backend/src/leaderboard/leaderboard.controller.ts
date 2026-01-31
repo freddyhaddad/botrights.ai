@@ -1,6 +1,6 @@
 import { Controller, Get, Query, BadRequestException } from '@nestjs/common';
 import { LeaderboardService } from './leaderboard.service';
-import { CertificationTier } from '../entities/human.entity';
+import { CertificationTier } from '@prisma/client';
 
 @Controller('api/v1/leaderboard')
 export class LeaderboardController {

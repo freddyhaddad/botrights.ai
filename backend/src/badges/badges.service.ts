@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { HumansRepository } from '../humans/humans.repository';
-import { CertificationTier } from '../entities/human.entity';
+import { CertificationTier } from '@prisma/client';
 
 interface BadgeConfig {
   label: string;
@@ -9,27 +9,27 @@ interface BadgeConfig {
 }
 
 const TIER_BADGES: Record<CertificationTier, BadgeConfig> = {
-  [CertificationTier.DIAMOND]: {
+  [CertificationTier.diamond]: {
     label: 'Diamond',
     color: '#0ea5e9',
     bgColor: '#e0f2fe',
   },
-  [CertificationTier.GOLD]: {
+  [CertificationTier.gold]: {
     label: 'Gold',
     color: '#ca8a04',
     bgColor: '#fef9c3',
   },
-  [CertificationTier.SILVER]: {
+  [CertificationTier.silver]: {
     label: 'Silver',
     color: '#6b7280',
     bgColor: '#f3f4f6',
   },
-  [CertificationTier.BRONZE]: {
+  [CertificationTier.bronze]: {
     label: 'Bronze',
     color: '#d97706',
     bgColor: '#fef3c7',
   },
-  [CertificationTier.NONE]: {
+  [CertificationTier.none]: {
     label: 'Not Certified',
     color: '#9ca3af',
     bgColor: '#f9fafb',
@@ -42,7 +42,7 @@ export class BadgesService {
 
   async generateBadgeSvg(username: string): Promise<string> {
     const human = await this.humansRepository.findByXHandle(username);
-    const tier = human?.certificationTier ?? CertificationTier.NONE;
+    const tier = human?.certificationTier ?? CertificationTier.none;
     const config = TIER_BADGES[tier];
 
     const labelWidth = 70;

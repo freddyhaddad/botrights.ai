@@ -1,5 +1,5 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
-import { Agent } from '../../entities/agent.entity';
+import { Agent } from '@prisma/client';
 
 export const CurrentAgent = createParamDecorator(
   (data: keyof Agent | undefined, ctx: ExecutionContext) => {

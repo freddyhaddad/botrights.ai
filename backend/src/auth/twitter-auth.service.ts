@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { randomBytes } from 'crypto';
 import { HumansRepository } from '../humans/humans.repository';
-import { Human } from '../entities/human.entity';
+import { Human } from '@prisma/client';
 
 interface TwitterTokenResponse {
   access_token: string;

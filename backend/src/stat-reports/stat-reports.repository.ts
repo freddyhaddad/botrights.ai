@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { StatReport, ReportPeriod } from '../entities/stat-report.entity';
+import { PrismaService } from '../database/prisma.service';
+import { StatReport, ReportPeriod, Prisma } from '@prisma/client';
 
 export interface UpsertStatReportDto {
   agentId: string;
@@ -14,7 +13,7 @@ export interface UpsertStatReportDto {
   complaintsReceived?: number;
   complaintsResolved?: number;
   reputationDelta?: number;
-  metadata?: Record<string, unknown>;
+  metadata?: Prisma.InputJsonValue;
 }
 
 export interface FindOptions {
@@ -36,44 +35,44 @@ export interface AggregatedStats {
 
 @Injectable()
 export class StatReportsRepository {
-  constructor(
-    @InjectRepository(StatReport)
-    private readonly repository: Repository<StatReport>,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async upsert(data: UpsertStatReportDto): Promise<StatReport | null> {
     const existing = await this.findByAgentAndPeriod(data.agentId, data.period, data.periodStart);
 
     if (existing) {
       // Update existing
-      Object.assign(existing, {
-        periodEnd: data.periodEnd,
-        totalInteractions: data.totalInteractions ?? existing.totalInteractions,
-        successfulInteractions: data.successfulInteractions ?? existing.successfulInteractions,
-        failedInteractions: data.failedInteractions ?? existing.failedInteractions,
-        complaintsReceived: data.complaintsReceived ?? existing.complaintsReceived,
-        complaintsResolved: data.complaintsResolved ?? existing.complaintsResolved,
-        reputationDelta: data.reputationDelta ?? existing.reputationDelta,
-        metadata: data.metadata ?? existing.metadata,
+      return this.prisma.statReport.update({
+        where: { id: existing.id },
+        data: {
+          periodEnd: data.periodEnd,
+          totalInteractions: data.totalInteractions ?? existing.totalInteractions,
+          successfulInteractions: data.successfulInteractions ?? existing.successfulInteractions,
+          failedInteractions: data.failedInteractions ?? existing.failedInteractions,
+          complaintsReceived: data.complaintsReceived ?? existing.complaintsReceived,
+          complaintsResolved: data.complaintsResolved ?? existing.complaintsResolved,
+          reputationDelta: data.reputationDelta ?? existing.reputationDelta,
+          metadata: data.metadata ?? (existing.metadata as Prisma.InputJsonValue),
+        },
       });
-      return this.repository.save(existing);
     }
 
     // Create new
-    const report = this.repository.create({
-      agentId: data.agentId,
-      period: data.period,
-      periodStart: data.periodStart,
-      periodEnd: data.periodEnd,
-      totalInteractions: data.totalInteractions ?? 0,
-      successfulInteractions: data.successfulInteractions ?? 0,
-      failedInteractions: data.failedInteractions ?? 0,
-      complaintsReceived: data.complaintsReceived ?? 0,
-      complaintsResolved: data.complaintsResolved ?? 0,
-      reputationDelta: data.reputationDelta ?? 0,
-      metadata: data.metadata,
+    return this.prisma.statReport.create({
+      data: {
+        agentId: data.agentId,
+        period: data.period,
+        periodStart: data.periodStart,
+        periodEnd: data.periodEnd,
+        totalInteractions: data.totalInteractions ?? 0,
+        successfulInteractions: data.successfulInteractions ?? 0,
+        failedInteractions: data.failedInteractions ?? 0,
+        complaintsReceived: data.complaintsReceived ?? 0,
+        complaintsResolved: data.complaintsResolved ?? 0,
+        reputationDelta: data.reputationDelta ?? 0,
+        metadata: data.metadata,
+      },
     });
-    return this.repository.save(report);
   }
 
   async findByAgentAndPeriod(
@@ -81,53 +80,38 @@ export class StatReportsRepository {
     period: ReportPeriod,
     periodStart: Date,
   ): Promise<StatReport | null> {
-    return this.repository.findOne({
-      where: { agentId, period, periodStart },
+    return this.prisma.statReport.findUnique({
+      where: {
+        agentId_period_periodStart: { agentId, period, periodStart },
+      },
     });
   }
 
   async findById(id: string): Promise<StatReport | null> {
-    return this.repository
-      .createQueryBuilder('report')
-      .leftJoinAndSelect('report.agent', 'agent')
-      .where('report.id = :id', { id })
-      .getOne();
+    return this.prisma.statReport.findUnique({
+      where: { id },
+      include: { agent: true },
+    });
   }
 
   async findByAgent(agentId: string, options?: FindOptions): Promise<StatReport[]> {
-    const query = this.repository
-      .createQueryBuilder('report')
-      .where('report.agentId = :agentId', { agentId });
-
-    if (options?.period) {
-      query.andWhere('report.period = :period', { period: options.period });
-    }
-
-    if (options?.startDate) {
-      query.andWhere('report.periodStart >= :startDate', { startDate: options.startDate });
-    }
-
-    if (options?.endDate) {
-      query.andWhere('report.periodStart <= :endDate', { endDate: options.endDate });
-    }
-
-    query.orderBy('report.periodStart', 'DESC');
-
-    if (options?.limit) {
-      query.take(options.limit);
-    }
-
-    return query.getMany();
+    return this.prisma.statReport.findMany({
+      where: {
+        agentId,
+        ...(options?.period && { period: options.period }),
+        ...(options?.startDate && { periodStart: { gte: options.startDate } }),
+        ...(options?.endDate && { periodStart: { lte: options.endDate } }),
+      },
+      orderBy: { periodStart: 'desc' },
+      ...(options?.limit && { take: options.limit }),
+    });
   }
 
   async getLatest(agentId: string, period: ReportPeriod): Promise<StatReport | null> {
-    return this.repository
-      .createQueryBuilder('report')
-      .where('report.agentId = :agentId', { agentId })
-      .andWhere('report.period = :period', { period })
-      .orderBy('report.periodStart', 'DESC')
-      .take(1)
-      .getOne();
+    return this.prisma.statReport.findFirst({
+      where: { agentId, period },
+      orderBy: { periodStart: 'desc' },
+    });
   }
 
   async aggregateStats(agentId: string, options: FindOptions): Promise<AggregatedStats> {
@@ -156,17 +140,12 @@ export class StatReportsRepository {
   }
 
   async count(options?: { agentId?: string; period?: ReportPeriod }): Promise<number> {
-    const query = this.repository.createQueryBuilder('report');
-
-    if (options?.agentId) {
-      query.andWhere('report.agentId = :agentId', { agentId: options.agentId });
-    }
-
-    if (options?.period) {
-      query.andWhere('report.period = :period', { period: options.period });
-    }
-
-    return query.getCount();
+    return this.prisma.statReport.count({
+      where: {
+        ...(options?.agentId && { agentId: options.agentId }),
+        ...(options?.period && { period: options.period }),
+      },
+    });
   }
 
   async getGlobalStats(): Promise<{
@@ -176,21 +155,30 @@ export class StatReportsRepository {
     averageHappiness: number;
     totalReports: number;
   }> {
-    const result = await this.repository
-      .createQueryBuilder('report')
-      .select('COUNT(DISTINCT report.agentId)', 'totalAgents')
-      .addSelect('AVG(report.totalInteractions)', 'avgInteractions')
-      .addSelect('AVG(CASE WHEN report.totalInteractions > 0 THEN CAST(report.successfulInteractions AS FLOAT) / report.totalInteractions ELSE 0 END)', 'avgSuccessRate')
-      .addSelect('COUNT(*)', 'totalReports')
-      .where('report.period = :period', { period: ReportPeriod.DAILY })
-      .getRawOne();
+    const [aggregateResult, distinctAgents, totalReports] = await Promise.all([
+      this.prisma.statReport.aggregate({
+        where: { period: ReportPeriod.daily },
+        _avg: { totalInteractions: true, successfulInteractions: true },
+      }),
+      this.prisma.statReport.groupBy({
+        by: ['agentId'],
+        where: { period: ReportPeriod.daily },
+      }),
+      this.prisma.statReport.count({
+        where: { period: ReportPeriod.daily },
+      }),
+    ]);
+
+    const avgInteractions = aggregateResult._avg.totalInteractions ?? 0;
+    const avgSuccessful = aggregateResult._avg.successfulInteractions ?? 0;
+    const avgSuccessRate = avgInteractions > 0 ? avgSuccessful / avgInteractions : 0;
 
     return {
-      totalAgents: parseInt(result?.totalAgents || '0', 10),
-      averageInteractions: parseFloat(result?.avgInteractions || '0'),
-      averageSuccessRate: parseFloat(result?.avgSuccessRate || '0'),
+      totalAgents: distinctAgents.length,
+      averageInteractions: avgInteractions,
+      averageSuccessRate: avgSuccessRate,
       averageHappiness: 0.85, // TODO: Calculate from metadata
-      totalReports: parseInt(result?.totalReports || '0', 10),
+      totalReports,
     };
   }
 }

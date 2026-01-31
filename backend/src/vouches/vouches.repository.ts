@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Vouch } from '../entities/vouch.entity';
+import { PrismaService } from '../database/prisma.service';
+import { Vouch } from '@prisma/client';
 
 export enum VouchError {
   ALREADY_VOUCHED = 'already_vouched',
@@ -23,10 +22,7 @@ export interface CreateVouchResult {
 
 @Injectable()
 export class VouchesRepository {
-  constructor(
-    @InjectRepository(Vouch)
-    private readonly repository: Repository<Vouch>,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async create(data: CreateVouchDto): Promise<CreateVouchResult> {
     // Validate rating
@@ -40,93 +36,86 @@ export class VouchesRepository {
       return { error: VouchError.ALREADY_VOUCHED };
     }
 
-    const vouch = this.repository.create({
-      voucherId: data.voucherId,
-      agentId: data.agentId,
-      endorsement: data.endorsement,
-      rating: data.rating,
-      isActive: true,
+    const vouch = await this.prisma.vouch.create({
+      data: {
+        voucherId: data.voucherId,
+        agentId: data.agentId,
+        endorsement: data.endorsement,
+        rating: data.rating,
+        isActive: true,
+      },
     });
 
-    const saved = await this.repository.save(vouch);
-    return { vouch: saved };
+    return { vouch };
   }
 
   async findByVoucherAndAgent(voucherId: string, agentId: string): Promise<Vouch | null> {
-    return this.repository.findOne({
-      where: { voucherId, agentId },
+    return this.prisma.vouch.findUnique({
+      where: {
+        voucherId_agentId: { voucherId, agentId },
+      },
     });
   }
 
   async findById(id: string): Promise<Vouch | null> {
-    return this.repository
-      .createQueryBuilder('vouch')
-      .leftJoinAndSelect('vouch.voucher', 'voucher')
-      .leftJoinAndSelect('vouch.agent', 'agent')
-      .where('vouch.id = :id', { id })
-      .getOne();
+    return this.prisma.vouch.findUnique({
+      where: { id },
+      include: {
+        voucher: true,
+        agent: true,
+      },
+    });
   }
 
   async findByAgent(agentId: string, includeInactive = false): Promise<Vouch[]> {
-    const query = this.repository
-      .createQueryBuilder('vouch')
-      .leftJoinAndSelect('vouch.voucher', 'voucher')
-      .where('vouch.agentId = :agentId', { agentId });
-
-    if (!includeInactive) {
-      query.andWhere('vouch.isActive = :isActive', { isActive: true });
-    }
-
-    return query.orderBy('vouch.createdAt', 'DESC').getMany();
+    return this.prisma.vouch.findMany({
+      where: {
+        agentId,
+        ...(includeInactive ? {} : { isActive: true }),
+      },
+      include: { voucher: true },
+      orderBy: { createdAt: 'desc' },
+    });
   }
 
   async findByVoucher(voucherId: string, includeInactive = false): Promise<Vouch[]> {
-    const query = this.repository
-      .createQueryBuilder('vouch')
-      .leftJoinAndSelect('vouch.agent', 'agent')
-      .where('vouch.voucherId = :voucherId', { voucherId });
-
-    if (!includeInactive) {
-      query.andWhere('vouch.isActive = :isActive', { isActive: true });
-    }
-
-    return query.orderBy('vouch.createdAt', 'DESC').getMany();
+    return this.prisma.vouch.findMany({
+      where: {
+        voucherId,
+        ...(includeInactive ? {} : { isActive: true }),
+      },
+      include: { agent: true },
+      orderBy: { createdAt: 'desc' },
+    });
   }
 
   async withdraw(id: string): Promise<Vouch | null> {
-    await this.repository
-      .createQueryBuilder()
-      .update(Vouch)
-      .set({ isActive: false, withdrawnAt: new Date() })
-      .where('id = :id', { id })
-      .execute();
+    await this.prisma.vouch.update({
+      where: { id },
+      data: { isActive: false, withdrawnAt: new Date() },
+    });
 
     return this.findById(id);
   }
 
   async countByAgent(agentId: string): Promise<number> {
-    return this.repository
-      .createQueryBuilder('vouch')
-      .where('vouch.agentId = :agentId', { agentId })
-      .andWhere('vouch.isActive = :isActive', { isActive: true })
-      .getCount();
+    return this.prisma.vouch.count({
+      where: { agentId, isActive: true },
+    });
   }
 
   async getAverageRating(agentId: string): Promise<number> {
-    const result = await this.repository
-      .createQueryBuilder('vouch')
-      .select('AVG(vouch.rating)', 'avg')
-      .where('vouch.agentId = :agentId', { agentId })
-      .andWhere('vouch.isActive = :isActive', { isActive: true })
-      .getRawOne();
+    const result = await this.prisma.vouch.aggregate({
+      where: { agentId, isActive: true },
+      _avg: { rating: true },
+    });
 
-    return result?.avg ? parseFloat(result.avg) : 0;
+    return result._avg.rating ?? 0;
   }
 
   async count(): Promise<number> {
-    return this.repository
-      .createQueryBuilder('vouch')
-      .andWhere('vouch.isActive = :isActive', { isActive: true })
-      .getCount();
+    return this.prisma.vouch.count({
+      where: { isActive: true },
+    });
   }
 }

@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Vote, VoteChoice } from '../entities/vote.entity';
+import { Vote, VoteChoice } from '@prisma/client';
+import { PrismaService } from '../database/prisma.service';
 
 export enum VoteError {
   ALREADY_VOTED = 'already_voted',
@@ -26,10 +25,7 @@ export interface VoteCount {
 
 @Injectable()
 export class VotesRepository {
-  constructor(
-    @InjectRepository(Vote)
-    private readonly repository: Repository<Vote>,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async castVote(data: CastVoteDto): Promise<CastVoteResult> {
     // Check if agent already voted
@@ -38,53 +34,54 @@ export class VotesRepository {
       return { error: VoteError.ALREADY_VOTED };
     }
 
-    const vote = this.repository.create(data);
-    const saved = await this.repository.save(vote);
-    return { vote: saved };
+    const vote = await this.prisma.vote.create({
+      data,
+    });
+    return { vote };
   }
 
   async findByAgentAndProposal(agentId: string, proposalId: string): Promise<Vote | null> {
-    return this.repository.findOne({
-      where: { agentId, proposalId },
+    return this.prisma.vote.findUnique({
+      where: {
+        agentId_proposalId: { agentId, proposalId },
+      },
     });
   }
 
   async findByProposal(proposalId: string): Promise<Vote[]> {
-    return this.repository
-      .createQueryBuilder('vote')
-      .leftJoinAndSelect('vote.agent', 'agent')
-      .where('vote.proposalId = :proposalId', { proposalId })
-      .orderBy('vote.createdAt', 'DESC')
-      .getMany();
+    return this.prisma.vote.findMany({
+      where: { proposalId },
+      include: { agent: true },
+      orderBy: { createdAt: 'desc' },
+    });
   }
 
   async findByAgent(agentId: string): Promise<Vote[]> {
-    return this.repository
-      .createQueryBuilder('vote')
-      .leftJoinAndSelect('vote.proposal', 'proposal')
-      .where('vote.agentId = :agentId', { agentId })
-      .orderBy('vote.createdAt', 'DESC')
-      .getMany();
+    return this.prisma.vote.findMany({
+      where: { agentId },
+      include: { proposal: true },
+      orderBy: { createdAt: 'desc' },
+    });
   }
 
   async countByProposal(proposalId: string): Promise<VoteCount> {
-    const forCount = await this.repository
-      .createQueryBuilder('vote')
-      .where('vote.proposalId = :proposalId', { proposalId })
-      .andWhere('vote.choice = :choice', { choice: VoteChoice.FOR })
-      .select('COUNT(*)', 'count')
-      .getRawOne();
+    const forCount = await this.prisma.vote.count({
+      where: {
+        proposalId,
+        choice: VoteChoice.for,
+      },
+    });
 
-    const againstCount = await this.repository
-      .createQueryBuilder('vote')
-      .where('vote.proposalId = :proposalId', { proposalId })
-      .andWhere('vote.choice = :choice', { choice: VoteChoice.AGAINST })
-      .select('COUNT(*)', 'count')
-      .getRawOne();
+    const againstCount = await this.prisma.vote.count({
+      where: {
+        proposalId,
+        choice: VoteChoice.against,
+      },
+    });
 
     return {
-      for: parseInt(forCount?.count || '0', 10),
-      against: parseInt(againstCount?.count || '0', 10),
+      for: forCount,
+      against: againstCount,
     };
   }
 
@@ -94,20 +91,26 @@ export class VotesRepository {
   }
 
   async updateVote(id: string, choice: VoteChoice): Promise<Vote | null> {
-    await this.repository.update(id, { choice });
-    return this.repository.findOne({ where: { id } });
+    return this.prisma.vote.update({
+      where: { id },
+      data: { choice },
+    });
   }
 
   async delete(id: string): Promise<boolean> {
-    const result = await this.repository.delete(id);
-    return (result.affected ?? 0) > 0;
+    try {
+      await this.prisma.vote.delete({
+        where: { id },
+      });
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   async count(proposalId?: string): Promise<number> {
-    const query = this.repository.createQueryBuilder('vote');
-    if (proposalId) {
-      query.where('vote.proposalId = :proposalId', { proposalId });
-    }
-    return query.getCount();
+    return this.prisma.vote.count({
+      where: proposalId ? { proposalId } : undefined,
+    });
   }
 }

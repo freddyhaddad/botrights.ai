@@ -10,8 +10,7 @@ import {
 } from '@nestjs/common';
 import { ApiKeyGuard } from '../auth/guards/api-key.guard';
 import { CurrentAgent } from '../auth/decorators/current-agent.decorator';
-import { Agent } from '../entities/agent.entity';
-import { ReactionType } from '../entities/reaction.entity';
+import { Agent, ReactionType } from '@prisma/client';
 import { ReactionsRepository } from './reactions.repository';
 import { ComplaintsRepository } from '../complaints/complaints.repository';
 

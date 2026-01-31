@@ -12,8 +12,7 @@ import {
 import { Response } from 'express';
 import { ApiKeyGuard } from '../auth/guards/api-key.guard';
 import { CurrentAgent } from '../auth/decorators/current-agent.decorator';
-import { Agent } from '../entities/agent.entity';
-import { ReportPeriod } from '../entities/stat-report.entity';
+import { Agent, ReportPeriod, Prisma } from '@prisma/client';
 import { StatReportsRepository } from './stat-reports.repository';
 import { CompareService } from './compare.service';
 import { HistoricalService, Granularity } from './historical.service';
@@ -27,7 +26,7 @@ interface ReportStatsDto {
   complaintsReceived?: number;
   complaintsResolved?: number;
   reputationDelta?: number;
-  metadata?: Record<string, unknown>;
+  metadata?: Prisma.InputJsonValue;
 }
 
 @Controller('api/v1/stats')
@@ -48,7 +47,7 @@ export class StatReportsController {
     }
 
     // Check if already reported today
-    const latest = await this.statReportsRepository.getLatest(agent.id, ReportPeriod.DAILY);
+    const latest = await this.statReportsRepository.getLatest(agent.id, ReportPeriod.daily);
     if (latest) {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
@@ -69,7 +68,7 @@ export class StatReportsController {
 
     const report = await this.statReportsRepository.upsert({
       agentId: agent.id,
-      period: ReportPeriod.DAILY,
+      period: ReportPeriod.daily,
       periodStart,
       periodEnd,
       totalInteractions: dto.totalInteractions,

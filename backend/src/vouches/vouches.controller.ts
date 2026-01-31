@@ -11,8 +11,7 @@ import {
 } from '@nestjs/common';
 import { ApiKeyGuard } from '../auth/guards/api-key.guard';
 import { CurrentAgent } from '../auth/decorators/current-agent.decorator';
-import { Agent } from '../entities/agent.entity';
-import { CertificationTier } from '../entities/certification.entity';
+import { Agent, CertificationTier } from '@prisma/client';
 import { VouchesRepository, VouchError } from './vouches.repository';
 import { CertificationsRepository } from '../certifications/certifications.repository';
 
@@ -46,7 +45,7 @@ export class VouchesController {
 
     // Find pending certification for this human (try each tier)
     let certification = null;
-    for (const tier of [CertificationTier.BRONZE, CertificationTier.SILVER, CertificationTier.GOLD, CertificationTier.DIAMOND]) {
+    for (const tier of [CertificationTier.bronze, CertificationTier.silver, CertificationTier.gold, CertificationTier.diamond]) {
       certification = await this.certificationsRepository.findPendingByHumanIdAndTier(humanId, tier);
       if (certification) break;
     }

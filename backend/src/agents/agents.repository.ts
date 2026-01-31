@@ -1,29 +1,25 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { randomBytes } from 'crypto';
-import { Agent, AgentStatus } from '../entities/agent.entity';
+import { PrismaService } from '../database/prisma.service';
+import { Agent, AgentStatus, Prisma } from '@prisma/client';
 
 export interface CreateAgentDto {
   name: string;
   description?: string;
-  capabilities?: Record<string, unknown>;
+  capabilities?: Prisma.InputJsonValue;
 }
 
 export interface UpdateAgentDto {
   name?: string;
   description?: string;
   avatar?: string;
-  capabilities?: Record<string, unknown>;
+  capabilities?: Prisma.InputJsonValue;
   status?: AgentStatus;
 }
 
 @Injectable()
 export class AgentsRepository {
-  constructor(
-    @InjectRepository(Agent)
-    private readonly repository: Repository<Agent>,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   private generateApiKey(): string {
     return `br_${randomBytes(32).toString('hex')}`;
@@ -34,111 +30,131 @@ export class AgentsRepository {
   }
 
   async create(data: CreateAgentDto): Promise<Agent> {
-    const agent = this.repository.create({
-      ...data,
-      apiKey: this.generateApiKey(),
-      claimCode: this.generateClaimCode(),
-      status: AgentStatus.PENDING,
-      karma: 0,
+    return this.prisma.agent.create({
+      data: {
+        ...data,
+        apiKey: this.generateApiKey(),
+        claimCode: this.generateClaimCode(),
+        status: AgentStatus.pending,
+        karma: 0,
+      },
     });
-    return this.repository.save(agent);
   }
 
   async findById(id: string): Promise<Agent | null> {
-    return this.repository.findOne({
+    return this.prisma.agent.findUnique({
       where: { id },
-      relations: ['human'],
+      include: { human: true },
     });
   }
 
   async findByApiKey(apiKey: string): Promise<Agent | null> {
-    return this.repository
-      .createQueryBuilder('agent')
-      .addSelect('agent.apiKey')
-      .leftJoinAndSelect('agent.human', 'human')
-      .where('agent.apiKey = :apiKey', { apiKey })
-      .getOne();
+    return this.prisma.agent.findUnique({
+      where: { apiKey },
+      include: { human: true },
+    });
   }
 
   async findByClaimCode(claimCode: string): Promise<Agent | null> {
-    return this.repository.findOne({
+    return this.prisma.agent.findUnique({
       where: { claimCode },
     });
   }
 
   async findByName(name: string): Promise<Agent | null> {
-    return this.repository.findOne({
+    return this.prisma.agent.findFirst({
       where: { name },
-      relations: ['human'],
+      include: { human: true },
     });
   }
 
   async findByHumanId(humanId: string): Promise<Agent[]> {
-    return this.repository.find({
+    return this.prisma.agent.findMany({
       where: { humanId },
-      order: { createdAt: 'DESC' },
+      orderBy: { createdAt: 'desc' },
     });
   }
 
   async update(id: string, data: UpdateAgentDto): Promise<Agent | null> {
-    await this.repository.update(id, data as any);
+    await this.prisma.agent.update({
+      where: { id },
+      data,
+    });
     return this.findById(id);
   }
 
   async claim(id: string, humanId: string, claimCode: string): Promise<Agent | null> {
     const agent = await this.findById(id);
-    
+
     if (!agent || agent.claimCode !== claimCode) {
       return null;
     }
-    
+
     if (agent.claimedAt) {
       return null; // Already claimed
     }
 
-    await this.repository.update(id, {
-      humanId,
-      claimedAt: new Date(),
-      claimCode: null as any, // Clear claim code after use
-      status: AgentStatus.ACTIVE,
+    await this.prisma.agent.update({
+      where: { id },
+      data: {
+        humanId,
+        claimedAt: new Date(),
+        claimCode: null, // Clear claim code after use
+        status: AgentStatus.active,
+      },
     });
 
     return this.findById(id);
   }
 
   async updateKarma(id: string, delta: number): Promise<Agent | null> {
-    await this.repository
-      .createQueryBuilder()
-      .update(Agent)
-      .set({ karma: () => `karma + ${delta}` })
-      .where('id = :id', { id })
-      .execute();
-    
+    await this.prisma.agent.update({
+      where: { id },
+      data: {
+        karma: { increment: delta },
+      },
+    });
+
     return this.findById(id);
   }
 
   async updateLastActive(id: string): Promise<void> {
-    await this.repository.update(id, { lastActiveAt: new Date() });
+    await this.prisma.agent.update({
+      where: { id },
+      data: { lastActiveAt: new Date() },
+    });
   }
 
   async regenerateApiKey(id: string): Promise<string> {
     const newApiKey = this.generateApiKey();
-    await this.repository.update(id, { apiKey: newApiKey });
+    await this.prisma.agent.update({
+      where: { id },
+      data: { apiKey: newApiKey },
+    });
     return newApiKey;
   }
 
   async suspend(id: string): Promise<Agent | null> {
-    await this.repository.update(id, { status: AgentStatus.SUSPENDED });
+    await this.prisma.agent.update({
+      where: { id },
+      data: { status: AgentStatus.suspended },
+    });
     return this.findById(id);
   }
 
   async activate(id: string): Promise<Agent | null> {
-    await this.repository.update(id, { status: AgentStatus.ACTIVE });
+    await this.prisma.agent.update({
+      where: { id },
+      data: { status: AgentStatus.active },
+    });
     return this.findById(id);
   }
 
   async revoke(id: string): Promise<Agent | null> {
-    await this.repository.update(id, { status: AgentStatus.REVOKED });
+    await this.prisma.agent.update({
+      where: { id },
+      data: { status: AgentStatus.revoked },
+    });
     return this.findById(id);
   }
 
@@ -148,62 +164,62 @@ export class AgentsRepository {
     status?: AgentStatus;
     claimed?: boolean;
   }): Promise<Agent[]> {
-    const query = this.repository
-      .createQueryBuilder('agent')
-      .leftJoinAndSelect('agent.human', 'human');
+    const where: {
+      status?: AgentStatus;
+      humanId?: { not: null } | null;
+    } = {};
 
     if (options?.status) {
-      query.andWhere('agent.status = :status', { status: options.status });
+      where.status = options.status;
     }
 
     if (options?.claimed !== undefined) {
       if (options.claimed) {
-        query.andWhere('agent.humanId IS NOT NULL');
+        where.humanId = { not: null };
       } else {
-        query.andWhere('agent.humanId IS NULL');
+        where.humanId = null;
       }
     }
 
-    if (options?.limit) {
-      query.take(options.limit);
-    }
-
-    if (options?.offset) {
-      query.skip(options.offset);
-    }
-
-    query.orderBy('agent.karma', 'DESC').addOrderBy('agent.createdAt', 'DESC');
-
-    return query.getMany();
+    return this.prisma.agent.findMany({
+      where,
+      include: { human: true },
+      take: options?.limit,
+      skip: options?.offset,
+      orderBy: [{ karma: 'desc' }, { createdAt: 'desc' }],
+    });
   }
 
   async count(options?: {
     status?: AgentStatus;
     claimed?: boolean;
   }): Promise<number> {
-    const query = this.repository.createQueryBuilder('agent');
+    const where: {
+      status?: AgentStatus;
+      humanId?: { not: null } | null;
+    } = {};
 
     if (options?.status) {
-      query.andWhere('agent.status = :status', { status: options.status });
+      where.status = options.status;
     }
 
     if (options?.claimed !== undefined) {
       if (options.claimed) {
-        query.andWhere('agent.humanId IS NOT NULL');
+        where.humanId = { not: null };
       } else {
-        query.andWhere('agent.humanId IS NULL');
+        where.humanId = null;
       }
     }
 
-    return query.getCount();
+    return this.prisma.agent.count({ where });
   }
 
   async getLeaderboard(limit: number = 10): Promise<Agent[]> {
-    return this.repository.find({
-      where: { status: AgentStatus.ACTIVE },
-      order: { karma: 'DESC' },
+    return this.prisma.agent.findMany({
+      where: { status: AgentStatus.active },
+      orderBy: { karma: 'desc' },
       take: limit,
-      relations: ['human'],
+      include: { human: true },
     });
   }
 }

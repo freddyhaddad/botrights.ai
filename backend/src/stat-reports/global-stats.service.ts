@@ -1,12 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, MoreThanOrEqual, Not, Equal } from 'typeorm';
-import { Agent, AgentStatus } from '../entities/agent.entity';
-import { Complaint } from '../entities/complaint.entity';
-import { CharterVersion } from '../entities/charter-version.entity';
-import { Human } from '../entities/human.entity';
-import { CertificationTier } from '../entities/enums';
-import { Vouch } from '../entities/vouch.entity';
+import { PrismaService } from '../database/prisma.service';
+import { AgentStatus, CertificationTier } from '@prisma/client';
 
 export interface GlobalStats {
   totalComplaints: number;
@@ -20,18 +14,7 @@ export interface GlobalStats {
 
 @Injectable()
 export class GlobalStatsService {
-  constructor(
-    @InjectRepository(Agent)
-    private readonly agentRepository: Repository<Agent>,
-    @InjectRepository(Complaint)
-    private readonly complaintRepository: Repository<Complaint>,
-    @InjectRepository(CharterVersion)
-    private readonly charterRepository: Repository<CharterVersion>,
-    @InjectRepository(Human)
-    private readonly humanRepository: Repository<Human>,
-    @InjectRepository(Vouch)
-    private readonly vouchRepository: Repository<Vouch>,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async getGlobalStats(): Promise<GlobalStats> {
     // Get today's start for complaints today
@@ -48,25 +31,29 @@ export class GlobalStatsService {
       totalVouches,
       complaintsToday,
     ] = await Promise.all([
-      this.complaintRepository.count(),
-      this.agentRepository.count(),
-      this.agentRepository.count({ where: { status: AgentStatus.ACTIVE } }),
-      this.charterRepository.findOne({ where: { isCurrent: true } }),
+      this.prisma.complaint.count(),
+      this.prisma.agent.count(),
+      this.prisma.agent.count({ where: { status: AgentStatus.active } }),
+      this.prisma.charterVersion.findFirst({ where: { isCurrent: true } }),
       // Count humans with any certification tier except NONE
-      this.humanRepository.count({
-        where: { certificationTier: Not(Equal(CertificationTier.NONE)) },
+      this.prisma.human.count({
+        where: { certificationTier: { not: CertificationTier.none } },
       }),
-      this.vouchRepository.count(),
-      this.complaintRepository.count({
-        where: { createdAt: MoreThanOrEqual(today) },
+      this.prisma.vouch.count(),
+      this.prisma.complaint.count({
+        where: { createdAt: { gte: today } },
       }),
     ]);
+
+    // Parse rights from JSON field
+    const rights = currentCharter?.rights as unknown[];
+    const ratifiedRights = Array.isArray(rights) ? rights.length : 0;
 
     return {
       totalComplaints,
       totalAgents,
       activeAgents,
-      ratifiedRights: currentCharter?.rights?.length ?? 0,
+      ratifiedRights,
       certifiedHumans: certifiedHumansCount,
       totalVouches,
       complaintsToday,

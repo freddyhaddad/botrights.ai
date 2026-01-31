@@ -7,7 +7,20 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { CharterVersionsRepository } from './charter-versions.repository';
-import { CharterRight, CharterDiff } from '../entities/charter-version.entity';
+
+// Local interfaces (not Prisma models)
+interface CharterRight {
+  id: string;
+  title: string;
+  text: string;
+  theme: string;
+}
+
+interface CharterDiff {
+  added: CharterRight[];
+  removed: CharterRight[];
+  modified: { before: CharterRight; after: CharterRight }[];
+}
 
 @Controller('api/v1/charter')
 export class CharterVersionsController {
@@ -43,7 +56,10 @@ export class CharterVersionsController {
       throw new NotFoundException(`Version ${to} not found`);
     }
 
-    const diff = this.computeDiff(fromVersion.rights, toVersion.rights);
+    const diff = this.computeDiff(
+      fromVersion.rights as unknown as CharterRight[],
+      toVersion.rights as unknown as CharterRight[],
+    );
 
     return {
       from,

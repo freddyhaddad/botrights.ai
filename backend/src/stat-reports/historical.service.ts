@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { StatReport, ReportPeriod } from '../entities/stat-report.entity';
+import { PrismaService } from '../database/prisma.service';
+import { ReportPeriod } from '@prisma/client';
 
 export enum Granularity {
   WEEKLY = 'weekly',
@@ -23,10 +22,7 @@ export interface HistoricalResult {
 
 @Injectable()
 export class HistoricalService {
-  constructor(
-    @InjectRepository(StatReport)
-    private readonly repository: Repository<StatReport>,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async getHistorical(
     granularity: Granularity,
@@ -34,41 +30,43 @@ export class HistoricalService {
     endDate?: Date,
   ): Promise<HistoricalResult> {
     const periodFormat = granularity === Granularity.WEEKLY
-      ? "TO_CHAR(report.period_start, 'IYYY-\"W\"IW')"
-      : "TO_CHAR(report.period_start, 'YYYY-MM')";
+      ? "TO_CHAR(period_start, 'IYYY-\"W\"IW')"
+      : "TO_CHAR(period_start, 'YYYY-MM')";
 
-    const query = this.repository
-      .createQueryBuilder('report')
-      .select(periodFormat, 'period')
-      .addSelect('SUM(report.total_interactions)', 'totalInteractions')
-      .addSelect('COUNT(*)', 'totalReports')
-      .addSelect(
-        'AVG(CASE WHEN report.total_interactions > 0 THEN CAST(report.successful_interactions AS FLOAT) / report.total_interactions ELSE 0 END)',
-        'avgSuccessRate',
-      )
-      .addSelect('AVG(report.complaints_received)', 'avgComplaints')
-      .where('report.period = :period', { period: ReportPeriod.DAILY });
-
+    // Build where conditions
+    let whereClause = `WHERE period = 'daily'`;
     if (startDate) {
-      query.andWhere('report.period_start >= :startDate', { startDate });
+      whereClause += ` AND period_start >= '${startDate.toISOString()}'`;
     }
-
     if (endDate) {
-      query.andWhere('report.period_start <= :endDate', { endDate });
+      whereClause += ` AND period_start <= '${endDate.toISOString()}'`;
     }
 
-    query
-      .groupBy(periodFormat)
-      .orderBy(periodFormat, 'ASC');
-
-    const rawData = await query.getRawMany();
+    const rawData = await this.prisma.$queryRawUnsafe<Array<{
+      period: string;
+      totalinteractions: bigint;
+      totalreports: bigint;
+      avgsuccessrate: number;
+      avgcomplaints: number;
+    }>>(`
+      SELECT
+        ${periodFormat} as period,
+        SUM(total_interactions) as totalInteractions,
+        COUNT(*) as totalReports,
+        AVG(CASE WHEN total_interactions > 0 THEN CAST(successful_interactions AS FLOAT) / total_interactions ELSE 0 END) as avgSuccessRate,
+        AVG(complaints_received) as avgComplaints
+      FROM stat_reports
+      ${whereClause}
+      GROUP BY ${periodFormat}
+      ORDER BY ${periodFormat} ASC
+    `);
 
     const data: HistoricalDataPoint[] = rawData.map((row) => ({
       period: row.period,
-      totalInteractions: parseInt(row.totalInteractions || '0', 10),
-      totalReports: parseInt(row.totalReports || '0', 10),
-      avgSuccessRate: parseFloat(row.avgSuccessRate || '0'),
-      avgComplaints: parseFloat(row.avgComplaints || '0'),
+      totalInteractions: Number(row.totalinteractions || 0),
+      totalReports: Number(row.totalreports || 0),
+      avgSuccessRate: Number(row.avgsuccessrate || 0),
+      avgComplaints: Number(row.avgcomplaints || 0),
     }));
 
     return {
