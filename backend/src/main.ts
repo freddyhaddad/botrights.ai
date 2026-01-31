@@ -32,3 +32,4 @@ async function bootstrap() {
   console.log(`🚀 BotRights.ai API running on http://localhost:${port}`);
 }
 bootstrap();
+// Cache bust: 1769901814
