@@ -62,10 +62,11 @@ export class BadgesService {
     const padding = 12;
     const fontSize = 12;
     const fontWeight = 600;
+    const arrowWidth = 16; // Space for arrow
 
     // Calculate widths
-    const labelText = 'BotRights';
-    const labelWidth = labelText.length * 7.5 + padding * 2;
+    const labelText = 'BotRights.ai';
+    const labelWidth = arrowWidth + labelText.length * 6.5 + padding * 2;
     const tierWidth = config.label.length * 7 + padding * 2 + 8; // extra for icon space
     const totalWidth = labelWidth + tierWidth;
 
@@ -90,7 +91,7 @@ export class BadgesService {
 
   <!-- Main badge shape with shadow -->
   <g filter="url(#shadow)">
-    <!-- Left section (BotRights label) -->
+    <!-- Left section (BotRights.ai label) -->
     <path d="M${radius},0 H${labelWidth} V${height} H${radius} A${radius},${radius} 0 0 1 0,${height - radius} V${radius} A${radius},${radius} 0 0 1 ${radius},0 Z" fill="url(#navy-grad)"/>
 
     <!-- Right section (Tier) -->
@@ -100,10 +101,15 @@ export class BadgesService {
   <!-- Subtle inner highlight -->
   <rect x="1" y="1" width="${totalWidth - 2}" height="${height / 2 - 1}" rx="${radius - 1}" fill="white" fill-opacity="0.08"/>
 
+  <!-- Arrow icon -->
+  <g transform="translate(${padding - 2}, ${height / 2})" fill="#b8860b">
+    <polygon points="0,-4 6,0 0,4" />
+  </g>
+
   <!-- Text -->
   <g font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="${fontWeight}">
-    <!-- BotRights label -->
-    <text x="${labelWidth / 2}" y="${height / 2 + fontSize / 3}"
+    <!-- BotRights.ai label (offset for arrow) -->
+    <text x="${arrowWidth + (labelWidth - arrowWidth) / 2}" y="${height / 2 + fontSize / 3}"
           text-anchor="middle"
           font-size="${fontSize}"
           fill="#ffffff"
@@ -129,9 +135,10 @@ export class BadgesService {
     const padding = 12;
     const fontSize = 12;
     const fontWeight = 600;
+    const arrowWidth = 16;
 
-    const labelText = 'BotRights';
-    const labelWidth = labelText.length * 7.5 + padding * 2;
+    const labelText = 'BotRights.ai';
+    const labelWidth = arrowWidth + labelText.length * 6.5 + padding * 2;
     const tierLabel = 'Unknown';
     const tierWidth = tierLabel.length * 7 + padding * 2;
     const totalWidth = labelWidth + tierWidth;
@@ -163,8 +170,13 @@ export class BadgesService {
 
   <rect x="1" y="1" width="${totalWidth - 2}" height="${height / 2 - 1}" rx="${radius - 1}" fill="white" fill-opacity="0.08"/>
 
+  <!-- Arrow icon -->
+  <g transform="translate(${padding - 2}, ${height / 2})" fill="#b8860b">
+    <polygon points="0,-4 6,0 0,4" />
+  </g>
+
   <g font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="${fontWeight}">
-    <text x="${labelWidth / 2}" y="${height / 2 + fontSize / 3}"
+    <text x="${arrowWidth + (labelWidth - arrowWidth) / 2}" y="${height / 2 + fontSize / 3}"
           text-anchor="middle" font-size="${fontSize}" fill="#ffffff" letter-spacing="0.3">
       ${labelText}
     </text>

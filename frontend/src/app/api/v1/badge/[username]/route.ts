@@ -47,9 +47,10 @@ function generateErrorBadge(): string {
   const padding = 12;
   const fontSize = 12;
   const fontWeight = 600;
+  const arrowWidth = 16;
 
-  const labelText = 'BotRights';
-  const labelWidth = labelText.length * 7.5 + padding * 2;
+  const labelText = 'BotRights.ai';
+  const labelWidth = arrowWidth + labelText.length * 6.5 + padding * 2;
   const tierLabel = 'Unknown';
   const tierWidth = tierLabel.length * 7 + padding * 2;
   const totalWidth = labelWidth + tierWidth;
@@ -81,8 +82,13 @@ function generateErrorBadge(): string {
 
   <rect x="1" y="1" width="${totalWidth - 2}" height="${height / 2 - 1}" rx="${radius - 1}" fill="white" fill-opacity="0.08"/>
 
+  <!-- Arrow icon -->
+  <g transform="translate(${padding - 2}, ${height / 2})" fill="#b8860b">
+    <polygon points="0,-4 6,0 0,4" />
+  </g>
+
   <g font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="${fontWeight}">
-    <text x="${labelWidth / 2}" y="${height / 2 + fontSize / 3}"
+    <text x="${arrowWidth + (labelWidth - arrowWidth) / 2}" y="${height / 2 + fontSize / 3}"
           text-anchor="middle" font-size="${fontSize}" fill="#ffffff" letter-spacing="0.3">
       ${labelText}
     </text>
