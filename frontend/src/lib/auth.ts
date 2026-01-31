@@ -10,6 +10,13 @@ if (process.env.AUTH_TWITTER_ID && process.env.AUTH_TWITTER_SECRET) {
     Twitter({
       clientId: process.env.AUTH_TWITTER_ID,
       clientSecret: process.env.AUTH_TWITTER_SECRET,
+      authorization: {
+        params: {
+          // Minimal scopes - only need profile info for human certification
+          // Removes tweet.read to avoid "view all posts" permission
+          scope: 'users.read offline.access',
+        },
+      },
     })
   );
 }
