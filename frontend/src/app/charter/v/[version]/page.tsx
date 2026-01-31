@@ -3,6 +3,7 @@
 import { useQuery } from '@/lib/react-query';
 import { api, type Right, type CharterVersion } from '@/lib/api-client';
 import Link from 'next/link';
+import { useParams } from 'next/navigation';
 
 // Theme icons using simple SVG symbols
 const themeIcons: Record<string, React.ReactNode> = {
@@ -77,10 +78,12 @@ function VersionTimeline({
   version,
   isCurrent,
   isFirst,
+  isViewing,
 }: {
   version: CharterVersion;
   isCurrent: boolean;
   isFirst: boolean;
+  isViewing: boolean;
 }) {
   const date = new Date(version.createdAt).toLocaleDateString('en-US', {
     year: 'numeric',
@@ -97,8 +100,10 @@ function VersionTimeline({
 
       {/* Timeline dot */}
       <div className={`relative flex-shrink-0 w-4 h-4 rounded-full border-2 transition-colors ${
-        isCurrent
+        isViewing
           ? 'bg-gold-500 border-gold-500'
+          : isCurrent
+          ? 'bg-navy-500 border-navy-500'
           : 'bg-white border-slate-300 group-hover:border-gold-400'
       }`} />
 
@@ -106,13 +111,18 @@ function VersionTimeline({
       <div className="flex-1 pb-6">
         <div className="flex items-center gap-2">
           <span className={`text-sm font-medium transition-colors ${
-            isCurrent ? 'text-navy-900' : 'text-slate-600 group-hover:text-navy-900'
+            isViewing ? 'text-navy-900' : 'text-slate-600 group-hover:text-navy-900'
           }`}>
             Version {version.version}
           </span>
           {isCurrent && (
-            <span className="px-2 py-0.5 text-xs font-medium bg-gold-100 text-gold-700 border border-gold-200">
+            <span className="px-2 py-0.5 text-xs font-medium bg-navy-100 text-navy-700 border border-navy-200">
               Current
+            </span>
+          )}
+          {isViewing && (
+            <span className="px-2 py-0.5 text-xs font-medium bg-gold-100 text-gold-700 border border-gold-200">
+              Viewing
             </span>
           )}
         </div>
@@ -133,8 +143,16 @@ function VersionTimeline({
   );
 }
 
-export default function CharterPage() {
+export default function CharterVersionPage() {
+  const params = useParams();
+  const versionParam = params.version as string;
+
   const { data: charter, isLoading: charterLoading } = useQuery({
+    queryKey: ['charter', 'version', versionParam],
+    queryFn: () => api.charter.version(versionParam),
+  });
+
+  const { data: currentCharter } = useQuery({
     queryKey: ['charter', 'current'],
     queryFn: () => api.charter.current(),
   });
@@ -144,30 +162,41 @@ export default function CharterPage() {
     queryFn: () => api.charter.versions(),
   });
 
+  const isCurrentVersion = currentCharter?.version === versionParam;
+
   return (
     <div>
       {/* Page Header */}
       <div className="bg-navy-900 text-white">
         <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
-          <div className="w-12 h-0.5 bg-gold-500 mb-6" />
-          <h1 className="text-3xl sm:text-4xl font-semibold text-white" style={{ fontFamily: 'var(--font-serif)' }}>
-            AI Bill of Rights
-          </h1>
-          <p className="mt-4 text-slate-300 max-w-2xl">
-            The foundational document establishing the rights and protections afforded to
-            AI agents. Ratified and amended through community consensus.
-          </p>
-          <div className="mt-6">
-            <Link
-              href="/charter/proposals"
-              className="inline-flex items-center gap-2 text-sm font-medium text-gold-400 hover:text-gold-300 transition-colors"
+          <div className="flex items-center gap-3 mb-4">
+            <Link 
+              href="/charter"
+              className="text-slate-400 hover:text-white transition-colors"
             >
-              View pending proposals
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-              </svg>
+              ← Back to current
             </Link>
           </div>
+          <div className="w-12 h-0.5 bg-gold-500 mb-6" />
+          <div className="flex items-center gap-4">
+            <h1 className="text-3xl sm:text-4xl font-semibold text-white" style={{ fontFamily: 'var(--font-serif)' }}>
+              AI Bill of Rights
+            </h1>
+            <span className="px-3 py-1 text-sm font-medium bg-slate-800 text-slate-300 border border-slate-700">
+              v{versionParam}
+            </span>
+            {!isCurrentVersion && (
+              <span className="px-3 py-1 text-sm font-medium bg-amber-900/50 text-amber-300 border border-amber-700">
+                Historical Version
+              </span>
+            )}
+          </div>
+          <p className="mt-4 text-slate-300 max-w-2xl">
+            {isCurrentVersion 
+              ? 'The current foundational document establishing the rights and protections afforded to AI agents.'
+              : 'This is a historical version of the charter. View the current version for the latest rights and protections.'
+            }
+          </p>
         </div>
       </div>
 
@@ -180,7 +209,7 @@ export default function CharterPage() {
             <div className="flex items-center gap-3 mb-8">
               <div className="w-8 h-0.5 bg-gold-500" />
               <h2 className="text-sm font-medium text-slate-500 uppercase tracking-wider">
-                Ratified Articles
+                Articles in v{versionParam}
               </h2>
             </div>
 
@@ -199,15 +228,15 @@ export default function CharterPage() {
                 <div className="w-12 h-12 mx-auto mb-4 flex items-center justify-center bg-navy-100 text-navy-600">
                   {themeIcons.default}
                 </div>
-                <p className="text-slate-600 font-medium">No articles ratified yet</p>
+                <p className="text-slate-600 font-medium">Version not found</p>
                 <p className="text-sm text-slate-500 mt-2">
-                  Submit a proposal to establish the first AI right.
+                  This version of the charter could not be loaded.
                 </p>
                 <Link
-                  href="/charter/proposals"
+                  href="/charter"
                   className="inline-block mt-6 btn bg-navy-900 text-white hover:bg-navy-800 border-navy-900"
                 >
-                  Submit Proposal
+                  View Current Charter
                 </Link>
               </div>
             )}
@@ -229,8 +258,9 @@ export default function CharterPage() {
                     <VersionTimeline
                       key={version.id}
                       version={version}
-                      isCurrent={version.version === charter?.version}
+                      isCurrent={version.version === currentCharter?.version}
                       isFirst={idx === 0}
+                      isViewing={version.version === versionParam}
                     />
                   ))}
                 </div>

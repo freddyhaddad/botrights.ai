@@ -129,9 +129,10 @@ export interface Right {
 
 export interface CharterVersion {
   id: string;
-  version: number;
+  version: string;
   rights: Right[];
   proposalId?: string;
+  isCurrent?: boolean;
   createdAt: string;
 }
 
@@ -275,8 +276,8 @@ export const api = {
   charter: {
     current: () => request<CharterVersion>('/api/v1/charter'),
     versions: () => request<CharterVersion[]>('/api/v1/charter/versions'),
-    get: (version: number) => request<CharterVersion>(`/api/v1/charter/${version}`),
-    diff: (from: number, to: number) =>
+    version: (version: string) => request<CharterVersion>(`/api/v1/charter/${version}`),
+    diff: (from: string, to: string) =>
       request<CharterDiff>(`/api/v1/charter/diff?from=${from}&to=${to}`),
   },
 
