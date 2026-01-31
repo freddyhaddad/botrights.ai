@@ -3,13 +3,19 @@ import Twitter from 'next-auth/providers/twitter';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
-export const { handlers, signIn, signOut, auth } = NextAuth({
-  providers: [
+// Only configure Twitter provider if credentials are available
+const providers = [];
+if (process.env.AUTH_TWITTER_ID && process.env.AUTH_TWITTER_SECRET) {
+  providers.push(
     Twitter({
-      clientId: process.env.AUTH_TWITTER_ID!,
-      clientSecret: process.env.AUTH_TWITTER_SECRET!,
-    }),
-  ],
+      clientId: process.env.AUTH_TWITTER_ID,
+      clientSecret: process.env.AUTH_TWITTER_SECRET,
+    })
+  );
+}
+
+export const { handlers, signIn, signOut, auth } = NextAuth({
+  providers,
   callbacks: {
     async jwt({ token, account, profile }) {
       // On initial sign in, exchange the Twitter tokens with our backend

@@ -43,7 +43,7 @@ export class LeaderboardService {
   constructor(private readonly prisma: PrismaService) {}
 
   async getLeaderboard(options: LeaderboardOptions): Promise<LeaderboardResult> {
-    // Build where clause
+    // Build where clause - only show certified humans (not 'none')
     const where: { certificationTier?: CertificationTier | { not: CertificationTier } } = {
       certificationTier: { not: CertificationTier.none },
     };
@@ -55,57 +55,49 @@ export class LeaderboardService {
     // Get total count
     const total = await this.prisma.human.count({ where });
 
-    // Get humans with aggregated data using raw query for complex sorting
-    // Prisma doesn't support CASE expressions in orderBy, so we use $queryRaw
-    const rawResults = await this.prisma.$queryRaw<Array<{
-      id: string;
-      x_handle: string;
-      x_name: string;
-      x_avatar: string | null;
-      certification_tier: string;
-      certified_at: Date | null;
-      agent_count: bigint;
-      vouch_count: bigint;
-    }>>`
-      SELECT
-        h.id,
-        h.x_handle,
-        h.x_name,
-        h.x_avatar,
-        h.certification_tier,
-        h.certified_at,
-        COUNT(DISTINCT a.id) as agent_count,
-        COALESCE(SUM(c.vouch_count), 0) as vouch_count
-      FROM humans h
-      LEFT JOIN agents a ON a.human_id = h.id
-      LEFT JOIN certifications c ON c.human_id = h.id AND c.status = 'approved'
-      WHERE h.certification_tier != 'none'
-      ${options.tier ? this.prisma.$queryRaw`AND h.certification_tier = ${options.tier}` : this.prisma.$queryRaw``}
-      GROUP BY h.id
-      ORDER BY
-        CASE h.certification_tier
-          WHEN 'diamond' THEN 4
-          WHEN 'gold' THEN 3
-          WHEN 'silver' THEN 2
-          WHEN 'bronze' THEN 1
-          ELSE 0
-        END DESC,
-        vouch_count DESC,
-        h.certified_at ASC
-      LIMIT ${options.limit}
-      OFFSET ${options.offset}
-    `;
+    // Get humans with related counts using Prisma's query builder
+    const humans = await this.prisma.human.findMany({
+      where,
+      include: {
+        _count: {
+          select: { agents: true },
+        },
+        certifications: {
+          where: { status: 'approved' },
+          select: { vouchCount: true },
+        },
+      },
+    });
 
-    const data: LeaderboardEntry[] = rawResults.map((row) => ({
-      id: row.id,
-      xHandle: row.x_handle,
-      xName: row.x_name,
-      xAvatar: row.x_avatar ?? undefined,
-      certificationTier: row.certification_tier as CertificationTier,
-      certifiedAt: row.certified_at ?? undefined,
-      agentCount: Number(row.agent_count),
-      vouchCount: Number(row.vouch_count),
-    }));
+    // Map and sort in JS (tier rank desc, vouch count desc, certified date asc)
+    const sorted = humans
+      .map((h) => ({
+        id: h.id,
+        xHandle: h.xHandle,
+        xName: h.xName,
+        xAvatar: h.xAvatar ?? undefined,
+        certificationTier: h.certificationTier,
+        certifiedAt: h.certifiedAt ?? undefined,
+        agentCount: h._count.agents,
+        vouchCount: h.certifications.reduce((sum, c) => sum + c.vouchCount, 0),
+      }))
+      .sort((a, b) => {
+        // Sort by tier rank (desc)
+        const tierDiff = TIER_RANK[b.certificationTier] - TIER_RANK[a.certificationTier];
+        if (tierDiff !== 0) return tierDiff;
+
+        // Then by vouch count (desc)
+        const vouchDiff = b.vouchCount - a.vouchCount;
+        if (vouchDiff !== 0) return vouchDiff;
+
+        // Then by certified date (asc) - earlier certified first
+        const aDate = a.certifiedAt ? new Date(a.certifiedAt).getTime() : Infinity;
+        const bDate = b.certifiedAt ? new Date(b.certifiedAt).getTime() : Infinity;
+        return aDate - bDate;
+      });
+
+    // Apply pagination
+    const data = sorted.slice(options.offset, options.offset + options.limit);
 
     return {
       data,
