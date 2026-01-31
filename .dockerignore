@@ -1,0 +1,27 @@
+# Dependencies
+node_modules
+**/node_modules
+
+# Build outputs
+dist
+**/dist
+.next
+
+# Development files
+.git
+.gitignore
+*.md
+*.log
+
+# IDE
+.idea
+.vscode
+*.swp
+
+# Test files
+coverage
+.nyc_output
+
+# Environment files (use Railway env vars)
+.env*
+!.env.example
