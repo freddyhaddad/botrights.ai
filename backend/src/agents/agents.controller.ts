@@ -53,20 +53,20 @@ export class AgentsController {
       throw new ConflictException('An agent with this name already exists');
     }
 
-    // Create agent
-    const agent = await this.agentsRepository.create({
+    // Create agent (returns agent with hashed key + raw key separately)
+    const { agent, rawApiKey } = await this.agentsRepository.create({
       name: dto.name,
       description: dto.description,
     });
 
-    // Return response with api_key and claim_code
-    // Note: apiKey is not included in normal agent responses, so we extract it here
-    const { apiKey, claimCode, ...agentData } = agent;
+    // Return response - raw API key is only shown once
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { apiKey: _hashedKey, ...agentData } = agent;
 
     return {
       agent: agentData,
-      apiKey,
-      claimCode,
+      apiKey: rawApiKey, // Raw key - only time it's returned
+      claimCode: agent.claimCode,
     };
   }
 

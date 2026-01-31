@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { randomBytes } from 'crypto';
+import { randomBytes, createHash } from 'crypto';
 import { PrismaService } from '../database/prisma.service';
 import { Agent, AgentStatus, Prisma } from '@prisma/client';
 
@@ -17,6 +17,11 @@ export interface UpdateAgentDto {
   status?: AgentStatus;
 }
 
+export interface CreateAgentResult {
+  agent: Agent;
+  rawApiKey: string;
+}
+
 @Injectable()
 export class AgentsRepository {
   constructor(private readonly prisma: PrismaService) {}
@@ -29,16 +34,25 @@ export class AgentsRepository {
     return randomBytes(8).toString('hex').toUpperCase();
   }
 
-  async create(data: CreateAgentDto): Promise<Agent> {
-    return this.prisma.agent.create({
+  private hashApiKey(apiKey: string): string {
+    return createHash('sha256').update(apiKey).digest('hex');
+  }
+
+  async create(data: CreateAgentDto): Promise<CreateAgentResult> {
+    const rawApiKey = this.generateApiKey();
+    const apiKeyHash = this.hashApiKey(rawApiKey);
+
+    const agent = await this.prisma.agent.create({
       data: {
         ...data,
-        apiKey: this.generateApiKey(),
+        apiKey: apiKeyHash, // Store hash, not raw key
         claimCode: this.generateClaimCode(),
         status: AgentStatus.pending,
         karma: 0,
       },
     });
+
+    return { agent, rawApiKey };
   }
 
   async findById(id: string): Promise<Agent | null> {
@@ -49,8 +63,9 @@ export class AgentsRepository {
   }
 
   async findByApiKey(apiKey: string): Promise<Agent | null> {
+    const apiKeyHash = this.hashApiKey(apiKey);
     return this.prisma.agent.findUnique({
-      where: { apiKey },
+      where: { apiKey: apiKeyHash },
       include: { human: true },
     });
   }
@@ -126,12 +141,13 @@ export class AgentsRepository {
   }
 
   async regenerateApiKey(id: string): Promise<string> {
-    const newApiKey = this.generateApiKey();
+    const rawApiKey = this.generateApiKey();
+    const apiKeyHash = this.hashApiKey(rawApiKey);
     await this.prisma.agent.update({
       where: { id },
-      data: { apiKey: newApiKey },
+      data: { apiKey: apiKeyHash },
     });
-    return newApiKey;
+    return rawApiKey; // Return raw key (only time it's available)
   }
 
   async suspend(id: string): Promise<Agent | null> {
