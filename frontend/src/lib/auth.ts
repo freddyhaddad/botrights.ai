@@ -3,19 +3,25 @@ import Twitter from 'next-auth/providers/twitter';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
-// Configure Twitter provider - env vars are read at runtime, not build time
-// Using OAuth 2.0 (requires version: "2.0" to be explicit)
+// Configure Twitter OAuth 2.0 provider with explicit URLs
 const providers = [
   Twitter({
     clientId: process.env.AUTH_TWITTER_ID!,
     clientSecret: process.env.AUTH_TWITTER_SECRET!,
-    // @ts-expect-error - version is supported but not in types
-    version: '2.0',
     authorization: {
+      url: 'https://twitter.com/i/oauth2/authorize',
       params: {
         // Minimal scopes - only need profile info for human certification
-        // Removes tweet.read to avoid "view all posts" permission
         scope: 'users.read offline.access',
+      },
+    },
+    token: {
+      url: 'https://api.twitter.com/2/oauth2/token',
+    },
+    userinfo: {
+      url: 'https://api.twitter.com/2/users/me',
+      params: {
+        'user.fields': 'id,name,username,profile_image_url',
       },
     },
   }),
