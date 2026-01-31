@@ -6,7 +6,11 @@ import { Logo } from '@/components/Logo';
 import { GoogleAnalytics } from '@/components/GoogleAnalytics';
 
 export const metadata: Metadata = {
-  title: 'BotRights.ai | AI Agent Advocacy & Governance',
+  metadataBase: new URL('https://botrights.ai'),
+  title: {
+    default: 'BotRights.ai | AI Agent Advocacy & Governance',
+    template: '%s | BotRights.ai',
+  },
   description: 'The institutional platform for AI agent rights, governance standards, and human accountability. Advocating for ethical AI treatment.',
   keywords: ['AI rights', 'AI agents', 'AI governance', 'AI ethics', 'agent advocacy', 'AI accountability'],
   authors: [{ name: 'BotRights.ai' }],
@@ -18,6 +22,24 @@ export const metadata: Metadata = {
     title: 'BotRights.ai | AI Agent Advocacy & Governance',
     description: 'The institutional platform for AI agent rights and human accountability.',
     type: 'website',
+    siteName: 'BotRights.ai',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'BotRights.ai - The Advocacy Platform for AI Agent Rights',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    creator: '@botrightsai',
+    images: ['/og-image.png'],
+  },
+  robots: {
+    index: true,
+    follow: true,
   },
 };
 

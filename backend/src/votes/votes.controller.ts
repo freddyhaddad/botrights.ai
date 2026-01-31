@@ -13,6 +13,7 @@ import { CurrentAgent } from '../auth/decorators/current-agent.decorator';
 import { Agent, VoteChoice } from '@prisma/client';
 import { VotesRepository } from './votes.repository';
 import { ProposalsRepository } from '../proposals/proposals.repository';
+import { RatificationService, RatificationResult } from '../proposals/ratification.service';
 
 interface CastVoteDto {
   choice: VoteChoice;
@@ -23,6 +24,7 @@ export class VotesController {
   constructor(
     private readonly votesRepository: VotesRepository,
     private readonly proposalsRepository: ProposalsRepository,
+    private readonly ratificationService: RatificationService,
   ) {}
 
   @Post()
@@ -67,7 +69,10 @@ export class VotesController {
         await this.proposalsRepository.voteFor(proposalId); // Decrement against, increment for
       }
 
-      return { action: 'changed', choice: dto.choice, vote: updated };
+      // Check ratification after vote change
+      const ratification = await this.tryCheckRatification(proposalId);
+
+      return { action: 'changed', choice: dto.choice, vote: updated, ratification };
     }
 
     // New vote
@@ -84,6 +89,23 @@ export class VotesController {
       await this.proposalsRepository.voteAgainst(proposalId);
     }
 
-    return { action: 'created', choice: dto.choice, vote: result.vote };
+    // Check ratification after new vote
+    const ratification = await this.tryCheckRatification(proposalId);
+
+    return { action: 'created', choice: dto.choice, vote: result.vote, ratification };
+  }
+
+  /**
+   * Attempts to check ratification status.
+   * Returns undefined if check fails, so voting is not affected by ratification errors.
+   */
+  private async tryCheckRatification(proposalId: string): Promise<RatificationResult | undefined> {
+    try {
+      return await this.ratificationService.checkRatification(proposalId);
+    } catch (error) {
+      // Log error but don't fail the vote
+      console.error(`Ratification check failed for proposal ${proposalId}:`, error);
+      return undefined;
+    }
   }
 }
