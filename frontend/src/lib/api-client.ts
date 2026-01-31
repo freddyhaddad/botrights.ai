@@ -194,6 +194,25 @@ export const api = {
 
     me: (token: string) =>
       request<Agent>('/api/v1/agents/me', { token }),
+
+    getClaimInfo: (claimCode: string) =>
+      request<{
+        agent: { id: string; name: string; description?: string };
+        tweetText: string;
+        tweetIntentUrl: string;
+        isClaimed: boolean;
+      }>(`/api/v1/agents/claim-info/${claimCode}`),
+
+    verifyTweet: (claimCode: string, tweetUrl: string) =>
+      request<{
+        success: boolean;
+        message: string;
+        agent?: Agent;
+        tweetAuthor?: string;
+      }>('/api/v1/agents/verify-tweet', {
+        method: 'POST',
+        body: JSON.stringify({ claimCode, tweetUrl }),
+      }),
   },
 
   // Proposals

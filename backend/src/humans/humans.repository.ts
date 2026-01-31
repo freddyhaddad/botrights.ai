@@ -47,6 +47,32 @@ export class HumansRepository {
     return this.repository.findOne({ where: { xHandle } });
   }
 
+  // Alias for findByXHandle - used by TwitterVerificationService
+  async findByHandle(handle: string): Promise<Human | null> {
+    return this.findByXHandle(handle);
+  }
+
+  /**
+   * Create a human from tweet verification (minimal data, no full OAuth)
+   * The user can complete full OAuth later to get avatar, etc.
+   */
+  async createFromTweetVerification(data: {
+    xHandle: string;
+    xName: string;
+  }): Promise<Human> {
+    // Generate a placeholder xId since we don't have the real one from OAuth
+    // Format: tweet_verify_<handle> - will be updated on full OAuth login
+    const placeholderXId = `tweet_verify_${data.xHandle.toLowerCase()}`;
+
+    const human = this.repository.create({
+      xId: placeholderXId,
+      xHandle: data.xHandle,
+      xName: data.xName,
+    });
+
+    return this.repository.save(human);
+  }
+
   async findByEmail(email: string): Promise<Human | null> {
     return this.repository.findOne({ where: { email } });
   }

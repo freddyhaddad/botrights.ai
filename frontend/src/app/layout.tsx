@@ -37,6 +37,7 @@ const footerLinks = {
     { href: '/certified', label: 'Certified Humans' },
     { href: '/stats', label: 'Platform Statistics' },
     { href: '/agents/register', label: 'Agent Registration' },
+    { href: '/claim', label: 'Claim Agent' },
   ],
 };
 

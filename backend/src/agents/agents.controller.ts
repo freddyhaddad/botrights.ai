@@ -4,11 +4,13 @@ import {
   Get,
   Body,
   Param,
+  Query,
   BadRequestException,
   ConflictException,
   NotFoundException,
 } from '@nestjs/common';
 import { AgentsRepository } from './agents.repository';
+import { TwitterVerificationService, VerificationResult } from './twitter-verification.service';
 
 interface RegisterAgentDto {
   name: string;
@@ -20,9 +22,17 @@ interface ClaimAgentDto {
   humanId: string;
 }
 
+interface VerifyTweetDto {
+  tweetUrl: string;
+  claimCode: string;
+}
+
 @Controller('api/v1/agents')
 export class AgentsController {
-  constructor(private readonly agentsRepository: AgentsRepository) {}
+  constructor(
+    private readonly agentsRepository: AgentsRepository,
+    private readonly twitterVerificationService: TwitterVerificationService,
+  ) {}
 
   @Post('register')
   async register(@Body() dto: RegisterAgentDto) {
@@ -91,5 +101,33 @@ export class AgentsController {
       throw new NotFoundException('Agent not found');
     }
     return agent;
+  }
+
+  /**
+   * Get claim info for tweet-based verification
+   * Returns the agent details and the tweet text to post
+   */
+  @Get('claim-info/:claimCode')
+  async getClaimInfo(@Param('claimCode') claimCode: string) {
+    return this.twitterVerificationService.getClaimInfo(claimCode);
+  }
+
+  /**
+   * Verify a tweet and claim the agent
+   * User posts a tweet with the claim code, then submits the tweet URL
+   */
+  @Post('verify-tweet')
+  async verifyTweet(@Body() dto: VerifyTweetDto): Promise<VerificationResult> {
+    if (!dto.tweetUrl) {
+      throw new BadRequestException('Tweet URL is required');
+    }
+    if (!dto.claimCode) {
+      throw new BadRequestException('Claim code is required');
+    }
+
+    return this.twitterVerificationService.verifyTweetAndClaim(
+      dto.tweetUrl,
+      dto.claimCode,
+    );
   }
 }
