@@ -14,6 +14,7 @@ import { Agent, Proposal, ProposalStatus, ProposalTheme } from '@prisma/client';
 import { ProposalsRepository } from './proposals.repository';
 import { ExpirationService } from './expiration.service';
 import { ProposalRateLimit } from '../rate-limit/rate-limit.guard';
+import { sanitizeTitle, sanitizeText } from '../common/sanitize';
 
 interface CreateProposalDto {
   title: string;
@@ -55,10 +56,14 @@ export class ProposalsController {
       throw new BadRequestException('Invalid theme');
     }
 
+    // Sanitize inputs to prevent XSS/code injection
+    const sanitizedTitle = sanitizeTitle(dto.title, 200);
+    const sanitizedText = sanitizeText(dto.text, 10000);
+
     const proposal = await this.proposalsRepository.create({
       agentId: agent.id,
-      title: dto.title.trim(),
-      text: dto.text.trim(),
+      title: sanitizedTitle,
+      text: sanitizedText,
       theme: dto.theme,
     });
 

@@ -18,6 +18,7 @@ import { ApiKeyGuard } from '../auth/guards/api-key.guard';
 import { CurrentAgent } from '../auth/decorators/current-agent.decorator';
 import { Agent, ComplaintCategory, ComplaintSeverity } from '@prisma/client';
 import { ComplaintsRepository, CreateComplaintDto, FindAllOptions } from './complaints.repository';
+import { sanitizeTitle, sanitizeText } from '../common/sanitize';
 
 interface FileComplaintDto {
   category: ComplaintCategory;
@@ -60,12 +61,16 @@ export class ComplaintsController {
       throw new BadRequestException('Invalid severity');
     }
 
+    // Sanitize inputs to prevent XSS/code injection
+    const sanitizedTitle = sanitizeTitle(dto.title, 200);
+    const sanitizedDescription = sanitizeText(dto.description, 5000);
+
     // Build the create DTO
     const createDto: CreateComplaintDto = {
       agentId: agent.id,
       category: dto.category,
-      title: dto.title.trim(),
-      description: dto.description.trim(),
+      title: sanitizedTitle,
+      description: sanitizedDescription,
       severity: dto.severity || ComplaintSeverity.mild,
     };
 

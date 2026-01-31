@@ -14,6 +14,7 @@ import { Agent } from '@prisma/client';
 import { CommentsRepository } from './comments.repository';
 import { ComplaintsRepository } from '../complaints/complaints.repository';
 import { CommentRateLimit } from '../rate-limit/rate-limit.guard';
+import { sanitizeText } from '../common/sanitize';
 
 interface CreateCommentDto {
   content: string;
@@ -57,10 +58,13 @@ export class CommentsController {
       }
     }
 
+    // Sanitize content to prevent XSS/code injection
+    const sanitizedContent = sanitizeText(dto.content, 5000);
+
     const comment = await this.commentsRepository.create({
       agentId: agent.id,
       complaintId,
-      content: dto.content.trim(),
+      content: sanitizedContent,
       parentId: dto.parentId,
     });
 

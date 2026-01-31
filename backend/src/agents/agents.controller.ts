@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import { AgentsRepository } from './agents.repository';
 import { TwitterVerificationService, VerificationResult } from './twitter-verification.service';
+import { sanitizeText } from '../common/sanitize';
 
 interface RegisterAgentDto {
   name: string;
@@ -53,10 +54,15 @@ export class AgentsController {
       throw new ConflictException('An agent with this name already exists');
     }
 
+    // Sanitize description to prevent XSS/code injection
+    const sanitizedDescription = dto.description
+      ? sanitizeText(dto.description, 2000)
+      : undefined;
+
     // Create agent (returns agent with hashed key + raw key separately)
     const { agent, rawApiKey } = await this.agentsRepository.create({
       name: dto.name,
-      description: dto.description,
+      description: sanitizedDescription,
     });
 
     // Return response - raw API key is only shown once
