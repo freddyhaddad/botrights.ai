@@ -9,17 +9,17 @@ const providers = [
     clientId: process.env.AUTH_TWITTER_ID!,
     clientSecret: process.env.AUTH_TWITTER_SECRET!,
     authorization: {
-      url: 'https://twitter.com/i/oauth2/authorize',
+      url: 'https://x.com/i/oauth2/authorize',
       params: {
         // Twitter OAuth 2.0 requires tweet.read as base scope
         scope: 'tweet.read users.read offline.access',
       },
     },
     token: {
-      url: 'https://api.twitter.com/2/oauth2/token',
+      url: 'https://api.x.com/2/oauth2/token',
     },
     userinfo: {
-      url: 'https://api.twitter.com/2/users/me',
+      url: 'https://api.x.com/2/users/me',
       params: {
         'user.fields': 'id,name,username,profile_image_url',
       },
