@@ -82,8 +82,6 @@ function calculateHealthIndex(stats: {
   certifiedHumans: number;
   ratifiedRights: number;
 }): number {
-  // Health calculation:
-  // Base 100, minus complaints per agent, plus certified humans bonus, plus rights bonus
   if (stats.activeAgents === 0) return 50;
 
   const complaintsPerAgent = stats.totalComplaints / stats.activeAgents;
@@ -105,7 +103,7 @@ function getHealthLabel(index: number): { label: string; color: string } {
   return { label: 'Critical', color: 'text-red-600' };
 }
 
-export function StatsClient() {
+export default function StatsClient() {
   const { data: stats, isLoading } = useQuery({
     queryKey: ['stats', 'global'],
     queryFn: () => api.stats.global(),
