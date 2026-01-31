@@ -62,19 +62,27 @@ export class BadgesService {
     const padding = 12;
     const fontSize = 12;
     const fontWeight = 600;
-    const arrowWidth = 16; // Space for arrow
+    const arrowWidth = 16;
 
     // Calculate widths
     const labelText = 'BotRights.ai';
     const labelWidth = arrowWidth + labelText.length * 6.5 + padding * 2;
-    const tierWidth = config.label.length * 7 + padding * 2 + 8; // extra for icon space
+    
+    // Show @username with tier icon
+    const handleText = `@${username}`;
+    const tierText = `${config.icon} ${config.label}`;
+    const rightText = `${handleText} · ${tierText}`;
+    const tierWidth = rightText.length * 6 + padding * 2;
     const totalWidth = labelWidth + tierWidth;
 
     // Navy color matching the site
     const navyColor = '#1a2744';
     const navyLight = '#243352';
+    
+    // Profile URL
+    const profileUrl = `https://botrights.ai/humans/${username}`;
 
-    return `<svg xmlns="http://www.w3.org/2000/svg" width="${totalWidth}" height="${height}" viewBox="0 0 ${totalWidth} ${height}">
+    return `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${totalWidth}" height="${height}" viewBox="0 0 ${totalWidth} ${height}">
   <defs>
     <linearGradient id="navy-grad" x1="0%" y1="0%" x2="0%" y2="100%">
       <stop offset="0%" style="stop-color:${navyLight};stop-opacity:1" />
@@ -89,43 +97,45 @@ export class BadgesService {
     </filter>
   </defs>
 
-  <!-- Main badge shape with shadow -->
-  <g filter="url(#shadow)">
-    <!-- Left section (BotRights.ai label) -->
-    <path d="M${radius},0 H${labelWidth} V${height} H${radius} A${radius},${radius} 0 0 1 0,${height - radius} V${radius} A${radius},${radius} 0 0 1 ${radius},0 Z" fill="url(#navy-grad)"/>
+  <a xlink:href="${profileUrl}" target="_blank">
+    <!-- Main badge shape with shadow -->
+    <g filter="url(#shadow)">
+      <!-- Left section (BotRights.ai label) -->
+      <path d="M${radius},0 H${labelWidth} V${height} H${radius} A${radius},${radius} 0 0 1 0,${height - radius} V${radius} A${radius},${radius} 0 0 1 ${radius},0 Z" fill="url(#navy-grad)"/>
 
-    <!-- Right section (Tier) -->
-    <path d="M${labelWidth},0 H${totalWidth - radius} A${radius},${radius} 0 0 1 ${totalWidth},${radius} V${height - radius} A${radius},${radius} 0 0 1 ${totalWidth - radius},${height} H${labelWidth} V0 Z" fill="url(#tier-grad)"/>
-  </g>
+      <!-- Right section (Handle + Tier) -->
+      <path d="M${labelWidth},0 H${totalWidth - radius} A${radius},${radius} 0 0 1 ${totalWidth},${radius} V${height - radius} A${radius},${radius} 0 0 1 ${totalWidth - radius},${height} H${labelWidth} V0 Z" fill="url(#tier-grad)"/>
+    </g>
 
-  <!-- Subtle inner highlight -->
-  <rect x="1" y="1" width="${totalWidth - 2}" height="${height / 2 - 1}" rx="${radius - 1}" fill="white" fill-opacity="0.08"/>
+    <!-- Subtle inner highlight -->
+    <rect x="1" y="1" width="${totalWidth - 2}" height="${height / 2 - 1}" rx="${radius - 1}" fill="white" fill-opacity="0.08"/>
 
-  <!-- Arrow icon -->
-  <g transform="translate(${padding - 2}, ${height / 2})" fill="#b8860b">
-    <polygon points="0,-4 6,0 0,4" />
-  </g>
+    <!-- Arrow icon -->
+    <g transform="translate(${padding - 2}, ${height / 2})" fill="#b8860b">
+      <polygon points="0,-4 6,0 0,4" />
+    </g>
 
-  <!-- Text -->
-  <g font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="${fontWeight}">
-    <!-- BotRights.ai label (offset for arrow) -->
-    <text x="${arrowWidth + (labelWidth - arrowWidth) / 2}" y="${height / 2 + fontSize / 3}"
-          text-anchor="middle"
-          font-size="${fontSize}"
-          fill="#ffffff"
-          letter-spacing="0.3">
-      ${labelText}
-    </text>
+    <!-- Text -->
+    <g font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="${fontWeight}">
+      <!-- BotRights.ai label (offset for arrow) -->
+      <text x="${arrowWidth + (labelWidth - arrowWidth) / 2}" y="${height / 2 + fontSize / 3}"
+            text-anchor="middle"
+            font-size="${fontSize}"
+            fill="#ffffff"
+            letter-spacing="0.3">
+        ${labelText}
+      </text>
 
-    <!-- Tier label with icon -->
-    <text x="${labelWidth + tierWidth / 2}" y="${height / 2 + fontSize / 3}"
-          text-anchor="middle"
-          font-size="${fontSize}"
-          fill="${config.tierText}"
-          letter-spacing="0.3">
-      ${config.icon} ${config.label}
-    </text>
-  </g>
+      <!-- Handle + Tier -->
+      <text x="${labelWidth + tierWidth / 2}" y="${height / 2 + fontSize / 3}"
+            text-anchor="middle"
+            font-size="${fontSize}"
+            fill="${config.tierText}"
+            letter-spacing="0.3">
+        ${handleText} · ${tierText}
+      </text>
+    </g>
+  </a>
 </svg>`;
   }
 
@@ -188,4 +198,3 @@ export class BadgesService {
 </svg>`;
   }
 }
-// Build: 1769890356
