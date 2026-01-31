@@ -35,16 +35,27 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async jwt({ token, account, profile }) {
       // On initial sign in, exchange the Twitter tokens with our backend
       if (account && profile) {
+        // Extract username from profile (NextAuth Twitter returns nested data)
+        const username = profile.username || (profile as { data?: { username?: string } }).data?.username;
+        const twitterId = profile.id || (profile as { data?: { id?: string } }).data?.id;
+        const name = profile.name || (profile as { data?: { name?: string } }).data?.name;
+        const image = profile.image || (profile as { data?: { profile_image_url?: string } }).data?.profile_image_url;
+
+        // Store username in token for redirect callback
+        if (username) {
+          token.username = username;
+        }
+
         try {
           const response = await fetch(`${API_URL}/api/v1/auth/twitter/token`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               accessToken: account.access_token,
-              twitterId: profile.id || (profile as { data?: { id?: string } }).data?.id,
-              username: profile.username || (profile as { data?: { username?: string } }).data?.username,
-              name: profile.name || (profile as { data?: { name?: string } }).data?.name,
-              image: profile.image || (profile as { data?: { profile_image_url?: string } }).data?.profile_image_url,
+              twitterId,
+              username,
+              name,
+              image,
             }),
           });
 
@@ -52,6 +63,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             const data = await response.json();
             token.backendToken = data.token;
             token.humanId = data.humanId;
+            // Backend may return username too, use it if available
+            if (data.username) {
+              token.username = data.username;
+            }
+          } else {
+            console.error('Backend token exchange failed:', response.status, await response.text());
           }
         } catch (error) {
           console.error('Failed to exchange token with backend:', error);
@@ -67,7 +84,28 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (token.humanId) {
         session.humanId = token.humanId as string;
       }
+      if (token.username) {
+        session.username = token.username as string;
+      }
       return session;
+    },
+    async redirect({ url, baseUrl }) {
+      // If the URL is the base URL (default redirect) or just "/", redirect to profile
+      // We need to check if this is a post-signin redirect
+      if (url === baseUrl || url === `${baseUrl}/` || url === '/') {
+        // Return a placeholder - the actual redirect will be handled client-side
+        // since we need the username from the session
+        return `${baseUrl}/auth/redirect`;
+      }
+      // For other URLs, allow them if they're on the same origin
+      if (url.startsWith(baseUrl)) {
+        return url;
+      }
+      // For relative URLs
+      if (url.startsWith('/')) {
+        return `${baseUrl}${url}`;
+      }
+      return baseUrl;
     },
   },
   pages: {
@@ -81,5 +119,6 @@ declare module 'next-auth' {
   interface Session {
     backendToken?: string;
     humanId?: string;
+    username?: string;
   }
 }

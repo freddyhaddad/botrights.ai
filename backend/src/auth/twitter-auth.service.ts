@@ -141,4 +141,33 @@ export class TwitterAuthService {
 
     return response.json();
   }
+
+  /**
+   * Exchange Twitter OAuth data from NextAuth for a backend JWT.
+   * This is called by the frontend after NextAuth handles the OAuth flow.
+   */
+  async exchangeTokenFromNextAuth(data: {
+    accessToken: string;
+    twitterId: string;
+    username: string;
+    name: string;
+    image?: string;
+  }): Promise<{ token: string; humanId: string; username: string }> {
+    // Find or create human based on the Twitter data from NextAuth
+    const human = await this.humansRepository.findOrCreateByTwitter({
+      xId: data.twitterId,
+      xHandle: data.username,
+      xName: data.name,
+      xAvatar: data.image,
+    });
+
+    // Generate JWT
+    const token = this.jwtService.sign({
+      sub: human.id,
+      xId: human.xId,
+      xHandle: human.xHandle,
+    });
+
+    return { token, humanId: human.id, username: human.xHandle };
+  }
 }
