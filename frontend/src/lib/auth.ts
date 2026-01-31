@@ -11,8 +11,8 @@ const providers = [
     authorization: {
       url: 'https://twitter.com/i/oauth2/authorize',
       params: {
-        // Minimal scopes - only need profile info for human certification
-        scope: 'users.read offline.access',
+        // Twitter OAuth 2.0 requires tweet.read as base scope
+        scope: 'tweet.read users.read offline.access',
       },
     },
     token: {
