@@ -1,8 +1,8 @@
 # Build stage
 FROM node:20-alpine AS builder
 
-# Cache bust
-ARG CACHEBUST=1
+# Force rebuild - timestamp: 2026-01-31-21:50
+RUN echo "Cache bust: $(date +%s)" > /tmp/cachebust
 
 WORKDIR /app
 
