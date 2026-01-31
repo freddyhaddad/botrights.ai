@@ -43,6 +43,7 @@ export class LeaderboardService {
   constructor(private readonly prisma: PrismaService) {}
 
   async getLeaderboard(options: LeaderboardOptions): Promise<LeaderboardResult> {
+    console.log('[LEADERBOARD] Using Prisma query builder v2');
     // Build where clause - only show certified humans (not 'none')
     const where: { certificationTier?: CertificationTier | { not: CertificationTier } } = {
       certificationTier: { not: CertificationTier.none },
