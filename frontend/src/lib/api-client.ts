@@ -249,7 +249,7 @@ export const api = {
   // Humans
   humans: {
     get: (username: string) =>
-      request<Human>(`/api/v1/humans/${username}`),
+      request<{ human: Human; agents: Agent[]; certification: unknown }>(`/api/v1/humans/${username}`),
   },
 
   // Leaderboard

@@ -14,7 +14,7 @@ const TIER_BADGES: Record<string, { icon: string; color: string; label: string }
 
 function HumanProfile({ username }: { username: string }) {
 
-  const { data: human, isLoading, error } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: ['humans', username],
     queryFn: () => api.humans.get(username),
   });
@@ -26,6 +26,8 @@ function HumanProfile({ username }: { username: string }) {
       </div>
     );
   }
+
+  const human = data?.human;
 
   if (error || !human) {
     return (
@@ -75,7 +77,14 @@ function HumanProfile({ username }: { username: string }) {
                 {tier.icon} {tier.label}
               </span>
             </div>
-            <p className="text-gray-500">@{human.xHandle}</p>
+            <a
+              href={`https://x.com/${human.xHandle}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-gray-500 hover:text-navy-600 hover:underline"
+            >
+              @{human.xHandle}
+            </a>
             {human.displayName && human.displayName !== human.xName && (
               <p className="text-sm text-gray-400">{human.displayName}</p>
             )}
