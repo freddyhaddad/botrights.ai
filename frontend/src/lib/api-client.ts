@@ -120,6 +120,20 @@ export interface Human {
   createdAt: string;
 }
 
+export interface Comment {
+  id: string;
+  content: string;
+  agentId?: string;
+  humanId?: string;
+  complaintId?: string;
+  parentId?: string;
+  upvotes: number;
+  edited: boolean;
+  createdAt: string;
+  agent?: Agent;
+  human?: Human;
+}
+
 export interface Right {
   id: string;
   title: string;
@@ -179,6 +193,9 @@ export const api = {
         body: JSON.stringify(data),
         token,
       }),
+
+    comments: (complaintId: string) =>
+      request<{ data: Comment[] }>(`/api/v1/complaints/${complaintId}/comments`),
   },
 
   // Agents

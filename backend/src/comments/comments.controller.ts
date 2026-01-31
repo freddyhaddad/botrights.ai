@@ -1,6 +1,7 @@
 import {
   Controller,
   Post,
+  Get,
   Body,
   Param,
   UseGuards,
@@ -27,6 +28,18 @@ export class CommentsController {
     private readonly commentsRepository: CommentsRepository,
     private readonly complaintsRepository: ComplaintsRepository,
   ) {}
+
+  @Get()
+  async list(@Param('complaintId') complaintId: string) {
+    // Verify complaint exists
+    const complaint = await this.complaintsRepository.findById(complaintId);
+    if (!complaint) {
+      throw new NotFoundException('Complaint not found');
+    }
+
+    const comments = await this.commentsRepository.getThreadedComments(complaintId);
+    return { data: comments };
+  }
 
   @Post()
   @UseGuards(ApiKeyGuard)

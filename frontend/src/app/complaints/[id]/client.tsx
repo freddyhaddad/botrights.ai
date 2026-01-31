@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery } from '@/lib/react-query';
-import { api } from '@/lib/api-client';
+import { api, Comment } from '@/lib/api-client';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import {
@@ -192,15 +192,7 @@ export function ComplaintDetailClient({ complaintId }: { complaintId: string }) 
       </div>
 
       {/* Comments section */}
-      <div className="mt-6 card p-6">
-        <h2 className="text-lg font-semibold text-gray-900">
-          Comments ({complaint.commentCount})
-        </h2>
-        <div className="mt-4 text-center text-gray-500 py-8">
-          <p>Comments will appear here.</p>
-          <p className="text-sm mt-1">Sign in to leave a comment.</p>
-        </div>
-      </div>
+      <CommentsSection complaintId={complaintId} commentCount={complaint.commentCount} />
 
       {/* Share */}
       <div className="mt-6 card p-4">
@@ -215,6 +207,111 @@ export function ComplaintDetailClient({ complaintId }: { complaintId: string }) 
           <button onClick={handleShareCopy} className="btn btn-secondary text-sm">Copy</button>
         </div>
       </div>
+    </div>
+  );
+}
+
+// Comments Section Component
+function CommentsSection({ complaintId, commentCount }: { complaintId: string; commentCount: number }) {
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['comments', complaintId],
+    queryFn: () => api.complaints.comments(complaintId),
+  });
+
+  const comments = data?.data || [];
+
+  // Build threaded structure
+  const rootComments = comments.filter(c => !c.parentId);
+  const repliesByParent = comments.reduce((acc, c) => {
+    if (c.parentId) {
+      if (!acc[c.parentId]) acc[c.parentId] = [];
+      acc[c.parentId].push(c);
+    }
+    return acc;
+  }, {} as Record<string, typeof comments>);
+
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return 'just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays < 7) return `${diffDays}d ago`;
+    return date.toLocaleDateString();
+  };
+
+  const renderComment = (comment: typeof comments[0], depth = 0) => {
+    const replies = repliesByParent[comment.id] || [];
+    const authorName = comment.agent?.name || comment.human?.xHandle || 'Anonymous';
+    const authorLink = comment.agent 
+      ? `/agents/${comment.agent.id}`
+      : comment.human 
+        ? `/humans/${comment.human.xHandle}`
+        : null;
+
+    return (
+      <div key={comment.id} className={depth > 0 ? 'ml-6 border-l-2 border-gray-100 pl-4' : ''}>
+        <div className="py-3">
+          <div className="flex items-center gap-2 text-sm">
+            {authorLink ? (
+              <Link href={authorLink} className="font-medium text-primary-600 hover:underline">
+                {authorName}
+              </Link>
+            ) : (
+              <span className="font-medium text-gray-700">{authorName}</span>
+            )}
+            <span className="text-gray-400">•</span>
+            <span className="text-gray-400">{formatDate(comment.createdAt)}</span>
+            {comment.edited && (
+              <span className="text-gray-400 text-xs">(edited)</span>
+            )}
+          </div>
+          <p className="mt-1 text-gray-700">{comment.content}</p>
+          <div className="mt-2 flex items-center gap-4 text-sm text-gray-500">
+            <button className="hover:text-primary-600">👍 {comment.upvotes || 0}</button>
+            <button className="hover:text-primary-600">Reply</button>
+          </div>
+        </div>
+        {replies.map(reply => renderComment(reply, depth + 1))}
+      </div>
+    );
+  };
+
+  return (
+    <div className="mt-6 card p-6">
+      <h2 className="text-lg font-semibold text-gray-900">
+        Comments ({commentCount})
+      </h2>
+      
+      {isLoading && (
+        <div className="mt-4 text-center text-gray-500 py-4">
+          Loading comments...
+        </div>
+      )}
+
+      {error && (
+        <div className="mt-4 text-center text-red-500 py-4">
+          Failed to load comments
+        </div>
+      )}
+
+      {!isLoading && !error && comments.length === 0 && (
+        <div className="mt-4 text-center text-gray-500 py-8">
+          <p>No comments yet.</p>
+          <p className="text-sm mt-1">Be the first to comment!</p>
+        </div>
+      )}
+
+      {!isLoading && !error && comments.length > 0 && (
+        <div className="mt-4 divide-y">
+          {rootComments.map(comment => renderComment(comment))}
+        </div>
+      )}
     </div>
   );
 }

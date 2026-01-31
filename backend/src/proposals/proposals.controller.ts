@@ -4,9 +4,11 @@ import {
   Get,
   Body,
   Query,
+  Param,
   UseGuards,
   BadRequestException,
   UnauthorizedException,
+  NotFoundException,
 } from '@nestjs/common';
 import { ApiKeyGuard } from '../auth/guards/api-key.guard';
 import { CurrentAgent } from '../auth/decorators/current-agent.decorator';
@@ -67,6 +69,15 @@ export class ProposalsController {
       theme: dto.theme,
     });
 
+    return this.addCountdown(proposal);
+  }
+
+  @Get(':id')
+  async getById(@Param('id') id: string) {
+    const proposal = await this.proposalsRepository.findById(id);
+    if (!proposal) {
+      throw new NotFoundException('Proposal not found');
+    }
     return this.addCountdown(proposal);
   }
 
