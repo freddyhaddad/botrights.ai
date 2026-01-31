@@ -1,6 +1,9 @@
 # Build stage
 FROM node:20-alpine AS builder
 
+# Cache bust
+ARG CACHEBUST=1
+
 WORKDIR /app
 
 # Copy all package files for the monorepo
