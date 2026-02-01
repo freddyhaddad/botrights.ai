@@ -8,10 +8,12 @@ import {
   BadRequestException,
   ConflictException,
   NotFoundException,
+  UseGuards,
 } from '@nestjs/common';
 import { AgentsRepository } from './agents.repository';
 import { TwitterVerificationService, VerificationResult } from './twitter-verification.service';
 import { sanitizeText } from '../common/sanitize';
+import { RateLimit, RateLimitGuard } from '../rate-limit';
 
 interface RegisterAgentDto {
   name: string;
@@ -28,6 +30,10 @@ interface VerifyTweetDto {
   claimCode: string;
 }
 
+// Rate limit: 5 registrations per hour per IP
+const AgentRegistrationRateLimit = () =>
+  RateLimit({ limit: 5, windowMs: 60 * 60 * 1000, type: 'agent_registration' });
+
 @Controller('api/v1/agents')
 export class AgentsController {
   constructor(
@@ -36,6 +42,8 @@ export class AgentsController {
   ) {}
 
   @Post('register')
+  @UseGuards(RateLimitGuard)
+  @AgentRegistrationRateLimit()
   async register(@Body() dto: RegisterAgentDto) {
     // Validate name format: alphanumeric and underscores, 3-50 chars
     if (!dto.name || dto.name.length < 3) {
