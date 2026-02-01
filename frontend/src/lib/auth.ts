@@ -11,8 +11,8 @@ const providers = [
     authorization: {
       url: 'https://x.com/i/oauth2/authorize',
       params: {
-        // Twitter OAuth 2.0 requires tweet.read as base scope
-        scope: 'tweet.read users.read offline.access',
+        // Only request identity - no access to tweets
+        scope: 'users.read',
       },
     },
     token: {
