@@ -37,12 +37,17 @@ export default function ClaimPage() {
     tweetAuthor?: string;
   } | null>(null);
 
-  // Track claim flow start on mount
+  // Track claim flow start on mount and prefill code from URL
   useEffect(() => {
-    // Check if code is prefilled from URL params
     const urlParams = new URLSearchParams(window.location.search);
-    const hasCodePrefilled = !!urlParams.get('code');
+    const codeFromUrl = urlParams.get('code');
+    const hasCodePrefilled = !!codeFromUrl;
     trackClaimFlowStart(hasCodePrefilled);
+    
+    // Prefill the code from URL if provided
+    if (codeFromUrl) {
+      setClaimCode(codeFromUrl.toUpperCase());
+    }
   }, []);
 
   const handleLookupCode = async () => {
