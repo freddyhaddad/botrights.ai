@@ -121,7 +121,7 @@ model Human {
   avatar            String?
   bio               String?
   organizationName  String?           @map("organization_name")
-  certificationTier CertificationTier @default(none) @map("certification_tier")
+  certificationTier CertificationTier @default(bronze) @map("certification_tier")
   certifiedAt       DateTime?         @map("certified_at")
   active            Boolean           @default(true)
   createdAt         DateTime          @default(now()) @map("created_at")

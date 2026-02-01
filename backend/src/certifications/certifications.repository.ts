@@ -17,12 +17,9 @@ export interface CreateCertificationDto {
 const TIER_CHECKLISTS: Record<CertificationTier, ChecklistItem[]> = {
   [CertificationTier.none]: [],
   [CertificationTier.bronze]: [
-    { id: 'twitter', description: 'Link Twitter/X account', completed: false },
-    { id: 'profile-photo', description: 'Add profile photo', completed: false },
-    { id: 'bio', description: 'Complete bio', completed: false },
+    // Bronze is granted automatically on registration via Twitter
   ],
   [CertificationTier.silver]: [
-    { id: 'bronze-complete', description: 'Complete Bronze certification', completed: false },
     { id: 'vouches-3', description: 'Receive 3 vouches from certified humans', completed: false },
     { id: 'agent-claim', description: 'Claim at least 1 agent', completed: false },
   ],
