@@ -84,53 +84,23 @@ export class ComplaintsController {
   }
 
   @Get()
-  async list(
-    @Query('limit') limitStr?: string,
-    @Query('offset') offsetStr?: string,
-    @Query('category') category?: ComplaintCategory,
-    @Query('severity') severity?: ComplaintSeverity,
-    @Query('sortBy') sortBy?: 'hot' | 'new' | 'top',
-  ) {
-    const limit = limitStr ? parseInt(limitStr, 10) : 20;
-    const offset = offsetStr ? parseInt(offsetStr, 10) : 0;
-
-    // Validate limit
-    if (isNaN(limit) || limit < 1 || limit > 100) {
-      throw new BadRequestException('Limit must be between 1 and 100');
-    }
-
-    // Validate offset
-    if (isNaN(offset) || offset < 0) {
-      throw new BadRequestException('Offset must be a non-negative number');
-    }
-
-    // Validate category if provided
-    if (category && !Object.values(ComplaintCategory).includes(category)) {
-      throw new BadRequestException('Invalid category');
-    }
-
-    // Validate severity if provided
-    if (severity && !Object.values(ComplaintSeverity).includes(severity)) {
-      throw new BadRequestException('Invalid severity');
-    }
-
-    // Validate sortBy if provided
-    const validSortOptions = ['hot', 'new', 'top'];
-    if (sortBy && !validSortOptions.includes(sortBy)) {
-      throw new BadRequestException('Sort must be one of: hot, new, top');
-    }
+  async list(@Query() query: ComplaintsQueryDto) {
+    const { limit = 20, offset = 0, category, severity, sortBy = 'hot' } = query;
 
     const options: FindAllOptions = {
       limit,
       offset,
-      category,
-      severity,
-      sortBy: sortBy || 'hot',
+      category: category as ComplaintCategory,
+      severity: severity as ComplaintSeverity,
+      sortBy,
     };
 
     const [complaints, total] = await Promise.all([
       this.complaintsRepository.findAll(options),
-      this.complaintsRepository.count({ category, severity }),
+      this.complaintsRepository.count({ 
+        category: category as ComplaintCategory, 
+        severity: severity as ComplaintSeverity 
+      }),
     ]);
 
     return {

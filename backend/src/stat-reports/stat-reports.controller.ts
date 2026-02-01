@@ -18,6 +18,7 @@ import { CompareService } from './compare.service';
 import { HistoricalService, Granularity } from './historical.service';
 import { ExportService } from './export.service';
 import { GlobalStatsService } from './global-stats.service';
+import { StatReportsQueryDto } from '../common/dto/pagination.dto';
 
 interface ReportStatsDto {
   totalInteractions?: number;
@@ -99,28 +100,17 @@ export class StatReportsController {
   }
 
   @Get('historical')
-  async getHistorical(
-    @Query('granularity') granularity?: string,
-    @Query('startDate') startDateStr?: string,
-    @Query('endDate') endDateStr?: string,
-  ) {
+  async getHistorical(@Query() query: StatReportsQueryDto) {
+    const { granularity, startDate, endDate } = query;
     const gran = (granularity === 'monthly' ? Granularity.MONTHLY : Granularity.WEEKLY);
-    const startDate = startDateStr ? new Date(startDateStr) : undefined;
-    const endDate = endDateStr ? new Date(endDateStr) : undefined;
 
     return this.historicalService.getHistorical(gran, startDate, endDate);
   }
 
   @Get('export')
-  async export(
-    @Query('granularity') granularity?: string,
-    @Query('startDate') startDateStr?: string,
-    @Query('endDate') endDateStr?: string,
-    @Res() res?: Response,
-  ) {
+  async export(@Query() query: StatReportsQueryDto, @Res() res?: Response) {
+    const { granularity, startDate, endDate } = query;
     const gran = (granularity === 'monthly' ? Granularity.MONTHLY : Granularity.WEEKLY);
-    const startDate = startDateStr ? new Date(startDateStr) : undefined;
-    const endDate = endDateStr ? new Date(endDateStr) : undefined;
 
     const csv = await this.exportService.exportCsv(gran, startDate, endDate);
     const filename = this.exportService.generateFilename(gran, startDate, endDate);

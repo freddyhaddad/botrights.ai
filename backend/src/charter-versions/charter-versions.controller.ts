@@ -7,6 +7,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { CharterVersionsRepository } from './charter-versions.repository';
+import { CharterDiffQueryDto } from '../common/dto/pagination.dto';
 
 // Local interfaces (not Prisma models)
 interface CharterRight {
@@ -41,7 +42,13 @@ export class CharterVersionsController {
   }
 
   @Get('diff')
-  async getDiff(@Query('from') from: string, @Query('to') to: string) {
+  async getDiff(@Query() query: CharterDiffQueryDto) {
+    const { from, to } = query;
+    
+    if (!from || !to) {
+      throw new BadRequestException('Both from and to version parameters are required');
+    }
+    
     if (from === to) {
       throw new BadRequestException('From and to versions must be different');
     }

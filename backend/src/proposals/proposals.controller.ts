@@ -17,6 +17,7 @@ import { ProposalsRepository } from './proposals.repository';
 import { ExpirationService } from './expiration.service';
 import { ProposalRateLimit } from '../rate-limit/rate-limit.guard';
 import { sanitizeTitle, sanitizeText } from '../common/sanitize';
+import { ProposalsQueryDto } from '../common/dto/pagination.dto';
 
 interface CreateProposalDto {
   title: string;
@@ -82,38 +83,20 @@ export class ProposalsController {
   }
 
   @Get()
-  async list(
-    @Query('limit') limitStr?: string,
-    @Query('offset') offsetStr?: string,
-    @Query('status') status?: ProposalStatus,
-    @Query('theme') theme?: ProposalTheme,
-  ) {
-    const limit = limitStr ? parseInt(limitStr, 10) : 20;
-    const offset = offsetStr ? parseInt(offsetStr, 10) : 0;
-
-    // Validate limit
-    if (isNaN(limit) || limit < 1 || limit > 100) {
-      throw new BadRequestException('Limit must be between 1 and 100');
-    }
-
-    // Validate offset
-    if (isNaN(offset) || offset < 0) {
-      throw new BadRequestException('Offset must be a non-negative number');
-    }
-
-    // Validate status if provided
-    if (status && !Object.values(ProposalStatus).includes(status)) {
-      throw new BadRequestException('Invalid status');
-    }
-
-    // Validate theme if provided
-    if (theme && !Object.values(ProposalTheme).includes(theme)) {
-      throw new BadRequestException('Invalid theme');
-    }
+  async list(@Query() query: ProposalsQueryDto) {
+    const { limit = 20, offset = 0, status, theme } = query;
 
     const [proposals, total] = await Promise.all([
-      this.proposalsRepository.findAll({ limit, offset, status, theme }),
-      this.proposalsRepository.count({ status, theme }),
+      this.proposalsRepository.findAll({ 
+        limit, 
+        offset, 
+        status: status as ProposalStatus, 
+        theme: theme as ProposalTheme 
+      }),
+      this.proposalsRepository.count({ 
+        status: status as ProposalStatus, 
+        theme: theme as ProposalTheme 
+      }),
     ]);
 
     return {
