@@ -73,13 +73,20 @@ export class HumansRepository {
   }
 
   async findOrCreateByTwitter(data: CreateHumanDto): Promise<Human> {
-    const human = await this.findByXId(data.xId);
+    // First try to find by xId
+    let human = await this.findByXId(data.xId);
+    
+    // If not found by xId, try by xHandle (prevents duplicates if xId changes)
+    if (!human && data.xHandle) {
+      human = await this.findByXHandle(data.xHandle);
+    }
 
     if (human) {
-      // Update Twitter data on each login
+      // Update Twitter data on each login (including xId in case it changed)
       return this.prisma.human.update({
         where: { id: human.id },
         data: {
+          xId: data.xId,
           xHandle: data.xHandle,
           xName: data.xName,
           ...(data.xAvatar && { xAvatar: data.xAvatar }),
