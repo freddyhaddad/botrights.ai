@@ -18,10 +18,13 @@ export class HumansController {
       throw new NotFoundException('Human not found');
     }
 
-    const [agents, certification] = await Promise.all([
+    const [agentsRaw, certification] = await Promise.all([
       this.agentsRepository.findByHumanId(human.id),
       this.certificationsRepository.findActiveByHumanId(human.id),
     ]);
+
+    // Strip sensitive fields from agents
+    const agents = agentsRaw.map(({ apiKey, claimCode, ...agent }) => agent);
 
     return {
       human,

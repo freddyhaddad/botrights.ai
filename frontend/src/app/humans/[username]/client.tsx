@@ -99,6 +99,41 @@ export function HumanProfileClient({ username }: { username: string }) {
         )}
       </div>
 
+      {/* Linked Agents */}
+      {data?.agents && data.agents.length > 0 && (
+        <div className="mt-6 card p-6">
+          <h2 className="text-lg font-semibold text-gray-900">
+            🤖 Linked Agents ({data.agents.length})
+          </h2>
+          <div className="mt-4 space-y-3">
+            {data.agents.map((agent: { id: string; name: string; description?: string; status: string; karma: number }) => (
+              <a
+                key={agent.id}
+                href={`/agents/${agent.id}`}
+                className="block rounded-lg border border-gray-200 p-4 hover:border-navy-300 hover:bg-gray-50 transition-colors"
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-medium text-gray-900">{agent.name}</h3>
+                    {agent.description && (
+                      <p className="mt-1 text-sm text-gray-500 line-clamp-2">{agent.description}</p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-gray-500">
+                    <span className={agent.status === 'active' ? 'text-green-600' : 'text-gray-400'}>
+                      {agent.status === 'active' ? '● Active' : '○ Inactive'}
+                    </span>
+                    {agent.karma > 0 && (
+                      <span className="text-amber-600">⭐ {agent.karma}</span>
+                    )}
+                  </div>
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Certification Details */}
       {human.certificationTier !== 'none' && (
         <div className="mt-6 card p-6">
