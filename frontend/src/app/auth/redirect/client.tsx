@@ -17,8 +17,11 @@ export function RedirectClient() {
     } else if (status === 'unauthenticated') {
       // Not authenticated, redirect to signin
       router.replace('/auth/signin');
+    } else if (status === 'authenticated' && !session?.username) {
+      // Authenticated but missing username - profile data incomplete
+      router.replace('/auth/signin?error=incomplete_profile');
     } else {
-      // Authenticated but no username, go to home
+      // Loading or other state, go to home
       router.replace('/');
     }
   }, [session, status, router]);

@@ -41,11 +41,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         const name = profile.name || (profile as { data?: { name?: string } }).data?.name;
         const image = profile.image || (profile as { data?: { profile_image_url?: string } }).data?.profile_image_url;
 
-        // Store username in token for redirect callback
+        // IMPORTANT: Set username from Twitter profile IMMEDIATELY as fallback
+        // This ensures we have the username even if the backend call fails
         if (username) {
           token.username = username;
         }
+        if (twitterId) {
+          token.twitterId = twitterId;
+        }
 
+        // Attempt backend token exchange - but continue with Twitter data if it fails
         try {
           const response = await fetch(`${API_URL}/api/v1/auth/twitter/token`, {
             method: 'POST',
@@ -68,10 +73,22 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               token.username = data.username;
             }
           } else {
-            console.error('Backend token exchange failed:', response.status, await response.text());
+            // Backend failed - log with context but continue with Twitter profile data
+            const errorText = await response.text();
+            console.error(
+              `Backend token exchange failed for user ${username} (twitterId: ${twitterId}):`,
+              response.status,
+              errorText
+            );
+            // Continue without backend token - username from Twitter profile is still set
           }
         } catch (error) {
-          console.error('Failed to exchange token with backend:', error);
+          // Network or other error - log with context but continue with Twitter profile data
+          console.error(
+            `Failed to exchange token with backend for user ${username} (twitterId: ${twitterId}):`,
+            error
+          );
+          // Continue without backend token - username from Twitter profile is still set
         }
       }
       return token;

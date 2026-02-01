@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { randomBytes } from 'crypto';
@@ -24,6 +24,7 @@ interface TwitterUserResponse {
 
 @Injectable()
 export class TwitterAuthService {
+  private readonly logger = new Logger(TwitterAuthService.name);
   private states = new Map<string, { createdAt: Date }>();
   private readonly clientId: string;
   private readonly clientSecret: string;
@@ -122,6 +123,10 @@ export class TwitterAuthService {
     });
 
     if (!response.ok) {
+      const errorBody = await response.text();
+      this.logger.error(
+        `Token exchange with Twitter API failed: ${response.status} - ${errorBody}`,
+      );
       throw new UnauthorizedException('Invalid authorization code');
     }
 
@@ -136,6 +141,10 @@ export class TwitterAuthService {
     });
 
     if (!response.ok) {
+      const errorBody = await response.text();
+      this.logger.error(
+        `Failed to fetch Twitter user info: ${response.status} - ${errorBody}`,
+      );
       throw new UnauthorizedException('Failed to get user info');
     }
 
@@ -153,21 +162,37 @@ export class TwitterAuthService {
     name: string;
     image?: string;
   }): Promise<{ token: string; humanId: string; username: string }> {
-    // Find or create human based on the Twitter data from NextAuth
-    const human = await this.humansRepository.findOrCreateByTwitter({
-      xId: data.twitterId,
-      xHandle: data.username,
-      xName: data.name,
-      xAvatar: data.image,
-    });
+    this.logger.log(
+      `Token exchange started for Twitter user: ${data.username} (ID: ${data.twitterId})`,
+    );
 
-    // Generate JWT
-    const token = this.jwtService.sign({
-      sub: human.id,
-      xId: human.xId,
-      xHandle: human.xHandle,
-    });
+    try {
+      // Find or create human based on the Twitter data from NextAuth
+      const human = await this.humansRepository.findOrCreateByTwitter({
+        xId: data.twitterId,
+        xHandle: data.username,
+        xName: data.name,
+        xAvatar: data.image,
+      });
 
-    return { token, humanId: human.id, username: human.xHandle };
+      // Generate JWT
+      const token = this.jwtService.sign({
+        sub: human.id,
+        xId: human.xId,
+        xHandle: human.xHandle,
+      });
+
+      this.logger.log(
+        `Token exchange successful for Twitter user: ${data.username} (humanId: ${human.id})`,
+      );
+
+      return { token, humanId: human.id, username: human.xHandle };
+    } catch (error) {
+      this.logger.error(
+        `Token exchange failed for Twitter user: ${data.username} (ID: ${data.twitterId})`,
+        error instanceof Error ? error.stack : String(error),
+      );
+      throw error;
+    }
   }
 }
