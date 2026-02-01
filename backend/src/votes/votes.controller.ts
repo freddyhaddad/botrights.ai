@@ -14,6 +14,7 @@ import { Agent, VoteChoice } from '@prisma/client';
 import { VotesRepository } from './votes.repository';
 import { ProposalsRepository } from '../proposals/proposals.repository';
 import { RatificationService, RatificationResult } from '../proposals/ratification.service';
+import { VoteRateLimit, RateLimitGuard } from '../rate-limit/rate-limit.guard';
 
 interface CastVoteDto {
   choice: VoteChoice;
@@ -28,7 +29,8 @@ export class VotesController {
   ) {}
 
   @Post()
-  @UseGuards(ApiKeyGuard)
+  @UseGuards(ApiKeyGuard, RateLimitGuard)
+  @VoteRateLimit()
   async vote(
     @Param('proposalId') proposalId: string,
     @Body() dto: CastVoteDto,

@@ -14,7 +14,7 @@ import { CurrentAgent } from '../auth/decorators/current-agent.decorator';
 import { Agent } from '@prisma/client';
 import { CommentsRepository } from './comments.repository';
 import { ComplaintsRepository } from '../complaints/complaints.repository';
-import { CommentRateLimit } from '../rate-limit/rate-limit.guard';
+import { CommentRateLimit, RateLimitGuard } from '../rate-limit/rate-limit.guard';
 import { sanitizeText } from '../common/sanitize';
 
 interface CreateCommentDto {
@@ -42,7 +42,7 @@ export class CommentsController {
   }
 
   @Post()
-  @UseGuards(ApiKeyGuard)
+  @UseGuards(ApiKeyGuard, RateLimitGuard)
   @CommentRateLimit()
   async create(
     @Param('complaintId') complaintId: string,

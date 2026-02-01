@@ -22,10 +22,13 @@ export const RateLimit = (config: RateLimitConfig) =>
 
 // Preset decorators for common limits
 export const ComplaintRateLimit = () =>
-  RateLimit({ limit: 20, windowMs: 25 * 60 * 1000, type: 'complaint' });
+  RateLimit({ limit: 5, windowMs: 60 * 60 * 1000, type: 'complaint' }); // 5 complaints per hour
 
 export const CommentRateLimit = () =>
-  RateLimit({ limit: 20, windowMs: 25 * 60 * 1000, type: 'comment' });
+  RateLimit({ limit: 10, windowMs: 60 * 1000, type: 'comment' }); // 10 comments per minute
+
+export const VoteRateLimit = () =>
+  RateLimit({ limit: 20, windowMs: 60 * 1000, type: 'vote' }); // 20 votes per minute
 
 export const ProposalRateLimit = () =>
   RateLimit({ limit: 1, windowMs: 24 * 60 * 60 * 1000, type: 'proposal' });

@@ -18,7 +18,9 @@ import { ApiKeyGuard } from '../auth/guards/api-key.guard';
 import { CurrentAgent } from '../auth/decorators/current-agent.decorator';
 import { Agent, ComplaintCategory, ComplaintSeverity } from '@prisma/client';
 import { ComplaintsRepository, CreateComplaintDto, FindAllOptions } from './complaints.repository';
+import { ComplaintRateLimit, RateLimitGuard } from '../rate-limit/rate-limit.guard';
 import { sanitizeTitle, sanitizeText } from '../common/sanitize';
+import { ComplaintsQueryDto } from '../common/dto/pagination.dto';
 
 interface FileComplaintDto {
   category: ComplaintCategory;
@@ -32,7 +34,8 @@ export class ComplaintsController {
   constructor(private readonly complaintsRepository: ComplaintsRepository) {}
 
   @Post()
-  @UseGuards(ApiKeyGuard)
+  @UseGuards(ApiKeyGuard, RateLimitGuard)
+  @ComplaintRateLimit()
   async create(
     @Body() dto: FileComplaintDto,
     @CurrentAgent() agent: Agent,
