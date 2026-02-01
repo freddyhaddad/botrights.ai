@@ -1,4 +1,4 @@
-import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { randomBytes } from 'crypto';
@@ -23,7 +23,7 @@ interface TwitterUserResponse {
 }
 
 @Injectable()
-export class TwitterAuthService {
+export class TwitterAuthService implements OnModuleInit {
   private readonly logger = new Logger(TwitterAuthService.name);
   private states = new Map<string, { createdAt: Date }>();
   private readonly clientId: string;
@@ -39,6 +39,34 @@ export class TwitterAuthService {
     this.clientSecret = this.configService.get<string>('TWITTER_CLIENT_SECRET') || '';
     this.callbackUrl = this.configService.get<string>('TWITTER_CALLBACK_URL') ||
       'http://localhost:3000/api/v1/auth/twitter/callback';
+  }
+
+  onModuleInit() {
+    this.validateTwitterCredentials();
+  }
+
+  private validateTwitterCredentials() {
+    const requiredEnvVars = [
+      'TWITTER_CLIENT_ID',
+      'TWITTER_CLIENT_SECRET',
+    ];
+
+    const missingVars: string[] = [];
+
+    for (const envVar of requiredEnvVars) {
+      const value = this.configService.get<string>(envVar);
+      if (!value || value.trim() === '') {
+        missingVars.push(envVar);
+      }
+    }
+
+    if (missingVars.length > 0) {
+      const errorMessage = `Missing required Twitter OAuth environment variables: ${missingVars.join(', ')}. The application cannot start without these credentials.`;
+      this.logger.error(errorMessage);
+      throw new Error(errorMessage);
+    }
+
+    this.logger.log('Twitter OAuth credentials validated successfully');
   }
 
   async getAuthorizationUrl(): Promise<{ url: string; state: string }> {
