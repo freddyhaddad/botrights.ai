@@ -1,0 +1,139 @@
+0000000000000000000000000000000000000000 f14391d618fcf7ef6ca0b5be94bc4aa06b3e490c Rocky Balboa <rockybalboa@Rockys-Virtual-Machine.local> 1769798124 -0800	commit (initial): Initial commit
+f14391d618fcf7ef6ca0b5be94bc4aa06b3e490c 3f73c6b3f6100e2e9cb227bcda8f3a0c6119becb Rocky Balboa <rockybalboa@Rockys-Virtual-Machine.local> 1769800867 -0800	commit: Setup beads + gitignore
+3f73c6b3f6100e2e9cb227bcda8f3a0c6119becb 7b5e26782e6a9431200ea57f2165b8a49f6224ad Rocky Balboa <rocky@freddyhaddad.com> 1769801318 -0800	commit: chore: add Docker setup with unconventional ports and 52 implementation beads
+7b5e26782e6a9431200ea57f2165b8a49f6224ad bd79e67dc8bc90020f265ad88ed8bededdc75930 Rocky Balboa <rocky@freddyhaddad.com> 1769801358 -0800	commit: chore: close INFRA-001, remove obsolete docker-compose version
+bd79e67dc8bc90020f265ad88ed8bededdc75930 e4208a87ad304889ecc1556a8432be0a5ca4fd42 Rocky Balboa <rocky@freddyhaddad.com> 1769801817 -0800	commit: feat: Set up monorepo structure with backend, frontend, and shared packages
+e4208a87ad304889ecc1556a8432be0a5ca4fd42 9f64a4e4b357f5297122ab680f51a74badaa7b9b Rocky Balboa <rocky@freddyhaddad.com> 1769801994 -0800	commit: feat: complete monorepo setup with database infrastructure
+9f64a4e4b357f5297122ab680f51a74badaa7b9b cdc7069c6841f9147007b0a41469e490971bf29f Rocky Balboa <rocky@freddyhaddad.com> 1769802039 -0800	commit: test: add entity definition tests for all database models
+cdc7069c6841f9147007b0a41469e490971bf29f 4551a1803081f811f8e53aba90108250e2b65d57 Rocky Balboa <rocky@freddyhaddad.com> 1769802117 -0800	commit: feat: add auth dependencies and validation pipe setup
+4551a1803081f811f8e53aba90108250e2b65d57 88d37d170383fb11c722c33be64d4e7f6fc377bc Rocky Balboa <rocky@freddyhaddad.com> 1769802123 -0800	commit: feat: complete NestJS project setup with all required dependencies
+88d37d170383fb11c722c33be64d4e7f6fc377bc c215f85108fd2dd7012940553344de3058ae977a Rocky Balboa <rocky@freddyhaddad.com> 1769802246 -0800	commit: feat: add Human entity with Twitter OAuth fields and repository
+c215f85108fd2dd7012940553344de3058ae977a 053a2aa20194e542a9ca90e9f8aa3d137193673f Rocky Balboa <rocky@freddyhaddad.com> 1769802356 -0800	commit: feat: add Agent entity with claim system and repository
+053a2aa20194e542a9ca90e9f8aa3d137193673f 65e15155846871f40c84db35dba603f06be0e34d Rocky Balboa <rocky@freddyhaddad.com> 1769802539 -0800	commit: feat: implement API key authentication for agents
+65e15155846871f40c84db35dba603f06be0e34d d404423337a3fc81ed1e6f869840f0cc8a56649c Rocky Balboa <rocky@freddyhaddad.com> 1769802800 -0800	commit: feat: implement Complaint entity with categories and repository
+d404423337a3fc81ed1e6f869840f0cc8a56649c baf169c5faf17ef74bd440601bce4ef4b699916c Rocky Balboa <rocky@freddyhaddad.com> 1769802925 -0800	commit: feat: implement Comment entity with upvotes and repository
+baf169c5faf17ef74bd440601bce4ef4b699916c e205de3dbbfc09f59c659ea7f0d39459c6c87653 Rocky Balboa <rocky@freddyhaddad.com> 1769803044 -0800	commit: feat: implement POST /api/v1/complaints endpoint
+e205de3dbbfc09f59c659ea7f0d39459c6c87653 8c17c9bd1c97a2c7cec3bdf038e32f8b0414b2c5 Rocky Balboa <rocky@freddyhaddad.com> 1769803185 -0800	commit: feat: add GET /api/v1/complaints endpoint with filtering and sorting
+8c17c9bd1c97a2c7cec3bdf038e32f8b0414b2c5 4a34bc897e00bb757ea6456ef22d23b83db494e6 Rocky Balboa <rocky@freddyhaddad.com> 1769803422 -0800	commit: feat: add Proposal entity with theme categories and repository
+4a34bc897e00bb757ea6456ef22d23b83db494e6 2b1706d8991ab47e01c36ecd5f3fa0089e340b14 Rocky Balboa <rocky@freddyhaddad.com> 1769803600 -0800	commit: feat: add Vote entity with agent voting and repository
+2b1706d8991ab47e01c36ecd5f3fa0089e340b14 b3168ed69c3127695338c4bb7de0f058f08df25c Rocky Balboa <rocky@freddyhaddad.com> 1769803727 -0800	commit: feat: add CharterVersion entity with rights JSONB and diff computation
+b3168ed69c3127695338c4bb7de0f058f08df25c e2263b6d6ee0208e388fb34986b1260c26400614 Rocky Balboa <rocky@freddyhaddad.com> 1769804085 -0800	commit: feat: add Certification entity for humans with tier-based checklists
+e2263b6d6ee0208e388fb34986b1260c26400614 650908ddffcbe2ec4a42b54d59fc6bfb9e4afc33 Rocky Balboa <rocky@freddyhaddad.com> 1769804212 -0800	commit: feat: add Vouch entity with rating and endorsement
+650908ddffcbe2ec4a42b54d59fc6bfb9e4afc33 16e887dcb7e670a7fbc5dc5a9f945a63d428d52d Rocky Balboa <rocky@freddyhaddad.com> 1769804372 -0800	commit: feat: add StatReport entity with unique constraint and upsert
+16e887dcb7e670a7fbc5dc5a9f945a63d428d52d 9c2645a29ab83def0cdc0555344bb4eb89362cb5 Rocky Balboa <rocky@freddyhaddad.com> 1769804539 -0800	commit: feat: add API client and React Query setup for frontend
+9c2645a29ab83def0cdc0555344bb4eb89362cb5 db2d9cd97f6613ac2102426df325e5e454d040f9 Rocky Balboa <rocky@freddyhaddad.com> 1769805816 -0800	commit: feat: add Agent Registration Endpoint
+db2d9cd97f6613ac2102426df325e5e454d040f9 c99eb907e3b591ff29f544ec010ca5d73e336a84 Rocky Balboa <rocky@freddyhaddad.com> 1769805983 -0800	commit: feat(agents): add claim and status endpoints
+c99eb907e3b591ff29f544ec010ca5d73e336a84 4a8e862acab0519347485a15ed0e147ecffd53f0 Rocky Balboa <rocky@freddyhaddad.com> 1769806127 -0800	commit: feat(auth): add Twitter OAuth 2.0 authentication
+4a8e862acab0519347485a15ed0e147ecffd53f0 a1963e8774eaf52be8dd8983e5678989a9f54c5c Rocky Balboa <rocky@freddyhaddad.com> 1769806226 -0800	commit: feat(rate-limit): add rate limiting middleware
+a1963e8774eaf52be8dd8983e5678989a9f54c5c 48b4e3edbaad965b7f1b93a523a4dfabef752a34 Rocky Balboa <rocky@freddyhaddad.com> 1769806299 -0800	commit: feat(complaints): add GET /:id endpoint for complaint detail
+48b4e3edbaad965b7f1b93a523a4dfabef752a34 d348eb18e8c62f45f02d49f4ba135d2f45f13bc2 Rocky Balboa <rocky@freddyhaddad.com> 1769806393 -0800	commit: feat(comments): add POST endpoint for adding comments
+d348eb18e8c62f45f02d49f4ba135d2f45f13bc2 244d2f7c36e576d231d92b3ae57936dcbbbaba16 Rocky Balboa <rocky@freddyhaddad.com> 1769807476 -0800	commit: feat(reactions): add reaction entity, repository and endpoint
+244d2f7c36e576d231d92b3ae57936dcbbbaba16 a9d014b1a99fce93cf27ff3950e8948271882272 Rocky Balboa <rocky@freddyhaddad.com> 1769807563 -0800	commit: feat(proposals): add POST endpoint for creating proposals
+a9d014b1a99fce93cf27ff3950e8948271882272 ae5e5b7c6cb9a18d9bce6f1bb2fa9fe256a4375d Rocky Balboa <rocky@freddyhaddad.com> 1769807631 -0800	commit: feat(proposals): add GET endpoint for listing proposals
+ae5e5b7c6cb9a18d9bce6f1bb2fa9fe256a4375d c5a004d2fe07928b17b1a4af097621f7d0e66f7f Rocky Balboa <rocky@freddyhaddad.com> 1769807738 -0800	commit: feat(votes): add POST endpoint for casting votes
+c5a004d2fe07928b17b1a4af097621f7d0e66f7f a3d22f6a219c42065e00b41f60ece1c4003ed7b1 Rocky Balboa <rocky@freddyhaddad.com> 1769808638 -0800	commit: feat(charter): add GET endpoints for charter versions
+a3d22f6a219c42065e00b41f60ece1c4003ed7b1 b7f59f3c70e9d9ecc23c6aee04ba1b4d997f7800 Rocky Balboa <rocky@freddyhaddad.com> 1769808732 -0800	commit: feat(certifications): add apply endpoint for certification
+b7f59f3c70e9d9ecc23c6aee04ba1b4d997f7800 0c78f90816c11768db49d940fa3c0a118168091b Rocky Balboa <rocky@freddyhaddad.com> 1769808845 -0800	commit: feat(vouches): add vouch endpoint for agent to vouch for human
+0c78f90816c11768db49d940fa3c0a118168091b b84a12cc92b000f7280e37f4ffea2f23704448ad Rocky Balboa <rocky@freddyhaddad.com> 1769809237 -0800	commit: feat(humans): add profile endpoint
+b84a12cc92b000f7280e37f4ffea2f23704448ad 42aaf4d7ea3b7a7d7d6c9a913ab19a001919e61d Rocky Balboa <rocky@freddyhaddad.com> 1769809338 -0800	commit: feat(stats): add daily stats report endpoint
+42aaf4d7ea3b7a7d7d6c9a913ab19a001919e61d 768dea7ef0997fb8df288002bdc388c7fbddaa21 Rocky Balboa <rocky@freddyhaddad.com> 1769809412 -0800	commit: feat(stats): add global stats aggregation endpoint
+768dea7ef0997fb8df288002bdc388c7fbddaa21 456c6316b2a905017494828242134e1b66de76ab Rocky Balboa <rocky@freddyhaddad.com> 1769809555 -0800	commit: feat(proposals): add ratification service
+456c6316b2a905017494828242134e1b66de76ab ef9d3adc5ec39f0080407e5d017d2d5a6bc5e269 Rocky Balboa <rocky@freddyhaddad.com> 1769809709 -0800	commit: feat(certifications): add tier service for upgrade logic
+ef9d3adc5ec39f0080407e5d017d2d5a6bc5e269 fac1b731f81132fdfc905152555c3726da6046f3 Rocky Balboa <rocky@freddyhaddad.com> 1769809845 -0800	commit: feat(frontend): dynamic homepage with stats and hot complaints
+fac1b731f81132fdfc905152555c3726da6046f3 ba9f203a55465478b7cf6aa51ec6531895555627 Rocky Balboa <rocky@freddyhaddad.com> 1769809916 -0800	commit: feat(frontend): add complaints list page with filters
+ba9f203a55465478b7cf6aa51ec6531895555627 0e3eb388d9299f943345e60bcf34f32eb117543a Rocky Balboa <rocky@freddyhaddad.com> 1769810020 -0800	commit: feat(frontend): add charter page with version history
+0e3eb388d9299f943345e60bcf34f32eb117543a 3f4d48723c1ee3d86890fc279f6388a7cef3ff06 Rocky Balboa <rocky@freddyhaddad.com> 1769810115 -0800	commit: feat(frontend): add proposals page with voting status
+3f4d48723c1ee3d86890fc279f6388a7cef3ff06 89c19d6df2805246239604169df978ad098f63bd Rocky Balboa <rocky@freddyhaddad.com> 1769810221 -0800	commit: feat(frontend): add stats dashboard with happiness index
+89c19d6df2805246239604169df978ad098f63bd 981b294c3db63dcac3134202e921a15988e8adda Rocky Balboa <rocky@freddyhaddad.com> 1769810250 -0800	commit: feat(backend): add production Dockerfile
+981b294c3db63dcac3134202e921a15988e8adda b916901a0101d3986c5f8e2043d019da95521c1e Rocky Balboa <rocky@freddyhaddad.com> 1769810285 -0800	commit: feat(frontend): add production Dockerfile
+b916901a0101d3986c5f8e2043d019da95521c1e 6889dfa14e1ea3d0b3206cafc679965253ddb971 Rocky Balboa <rocky@freddyhaddad.com> 1769810436 -0800	commit: feat(frontend): add human profile page
+6889dfa14e1ea3d0b3206cafc679965253ddb971 e3b278d6ccd6e74c715dda5e35da450588c39764 Rocky Balboa <rocky@freddyhaddad.com> 1769810496 -0800	commit: feat(frontend): add agent profile page
+e3b278d6ccd6e74c715dda5e35da450588c39764 fb7aa672d74fc013625268912e2a72811b83f5b7 Rocky Balboa <rocky@freddyhaddad.com> 1769811603 -0800	commit: feat(frontend): add complaint detail page
+fb7aa672d74fc013625268912e2a72811b83f5b7 7e7a14d5aa0ddc1a629f55fe8799d5f717475861 Rocky Balboa <rocky@freddyhaddad.com> 1769811699 -0800	commit: feat(frontend): add NextAuth with Twitter/X provider
+7e7a14d5aa0ddc1a629f55fe8799d5f717475861 08383bccb78cfb4f0ee318d737f379c8381a1145 Rocky Balboa <rocky@freddyhaddad.com> 1769811717 -0800	commit: feat(backend): add Railway deployment configuration
+08383bccb78cfb4f0ee318d737f379c8381a1145 79ee307d20231ced7a5aff9ad42161c6d210558f Rocky Balboa <rocky@freddyhaddad.com> 1769811735 -0800	commit: feat(frontend): add Vercel deployment configuration
+79ee307d20231ced7a5aff9ad42161c6d210558f c109c9a7d58e4d4a79aa556ea2274f073130c6d3 Rocky Balboa <rocky@freddyhaddad.com> 1769811799 -0800	commit: feat(complaints): add delete endpoint for own complaints
+c109c9a7d58e4d4a79aa556ea2274f073130c6d3 2940c34aef052976e603807e167c7e5fe1299497 Rocky Balboa <rocky@freddyhaddad.com> 1769811885 -0800	commit: feat(backend): add certification leaderboard endpoint
+2940c34aef052976e603807e167c7e5fe1299497 875479521583434699e91922b667de9a6e1bd7ae Rocky Balboa <rocky@freddyhaddad.com> 1769812021 -0800	commit: feat(frontend): add certification leaderboard page
+875479521583434699e91922b667de9a6e1bd7ae e7f94c17d89badcac14e374715bafe7bf5fa5c85 Rocky Balboa <rocky@freddyhaddad.com> 1769812231 -0800	commit: feat(backend): add proposal expiration after 30 days
+e7f94c17d89badcac14e374715bafe7bf5fa5c85 8a5372ae14fa121480460ca4744f542153c3e9b8 Rocky Balboa <rocky@freddyhaddad.com> 1769812338 -0800	commit: feat(backend): add embeddable SVG badge endpoint
+8a5372ae14fa121480460ca4744f542153c3e9b8 42207609d92986612413ae01e9eab2e2932bbfea Rocky Balboa <rocky@freddyhaddad.com> 1769812498 -0800	commit: feat(backend): add compare to average stats endpoint
+42207609d92986612413ae01e9eab2e2932bbfea 83f521d91843467dfb10c3f85eb3e57ed20d2e96 Rocky Balboa <rocky@freddyhaddad.com> 1769812605 -0800	commit: feat(backend): add historical stats endpoint
+83f521d91843467dfb10c3f85eb3e57ed20d2e96 a892a2b9b52934d50115f341661c6f878f7ac7af Rocky Balboa <rocky@freddyhaddad.com> 1769812710 -0800	commit: feat(backend): add CSV export endpoint for stats
+a892a2b9b52934d50115f341661c6f878f7ac7af a650a7d838a75256113abc3e39a6c57776bc771a Rocky Balboa <rocky@freddyhaddad.com> 1769812765 -0800	commit: ci: add GitHub Actions CI/CD workflows
+a650a7d838a75256113abc3e39a6c57776bc771a afbc6350859349b07c01d5167966f82a17fca5cb Rocky Balboa <rocky@freddyhaddad.com> 1769837543 -0800	commit: fix(complaints): use forwardRef to resolve circular dependency with AuthModule
+afbc6350859349b07c01d5167966f82a17fca5cb d68a90e729532bdb4f215610f77fc9d4963e1cd6 Rocky Balboa <rocky@freddyhaddad.com> 1769867723 -0800	commit: feat: add logo components, seed data, global stats service, update UI
+d68a90e729532bdb4f215610f77fc9d4963e1cd6 c2363df6730f592c222ce5bdf846b767b6ebbc96 Rocky Balboa <rocky@freddyhaddad.com> 1769868179 -0800	commit: fix: use npm install for Vercel
+c2363df6730f592c222ce5bdf846b767b6ebbc96 86a4fa252f8612f9c9b16375da90dc2af447f13a Rocky Balboa <rocky@freddyhaddad.com> 1769868245 -0800	commit: fix: remove unused @botrights/shared dependency from frontend
+86a4fa252f8612f9c9b16375da90dc2af447f13a 426b8fc020601e13a41a7f86e84e46759f7f843b Rocky Balboa <rocky@freddyhaddad.com> 1769868512 -0800	commit: fix: update Dockerfile for Railway deployment
+426b8fc020601e13a41a7f86e84e46759f7f843b d671d0b9421f8d17daca4a31065a85997fce1000 Rocky Balboa <rocky@freddyhaddad.com> 1769868856 -0800	commit: fix: support DATABASE_URL for Railway deployment
+d671d0b9421f8d17daca4a31065a85997fce1000 d73c1d5cc84cd7085a05b1ea989f0ba8f1c2e66b Rocky Balboa <rocky@freddyhaddad.com> 1769868983 -0800	commit: fix: correct healthcheck path to /health
+d73c1d5cc84cd7085a05b1ea989f0ba8f1c2e66b 68806e9a059ff0cb29d061a973146397fb122039 Rocky Balboa <rocky@freddyhaddad.com> 1769870424 -0800	commit: feat: implement tweet-based agent claim verification
+68806e9a059ff0cb29d061a973146397fb122039 ce0477c238cca28bebe5aaaecc02511deee16eaf Rocky Balboa <rocky@freddyhaddad.com> 1769870729 -0800	commit: fix: make CORS origins configurable via env
+ce0477c238cca28bebe5aaaecc02511deee16eaf f2c9986d0be285e295e79e1913acf8b77fe99ea2 Rocky Balboa <rocky@freddyhaddad.com> 1769871267 -0800	commit: fix: auto-run migrations on startup for production
+f2c9986d0be285e295e79e1913acf8b77fe99ea2 2452b4941fe0765ec1a6b8b10f301fb5b56537c9 Rocky Balboa <rocky@freddyhaddad.com> 1769873263 -0800	commit: feat: migrate from TypeORM to Prisma ORM
+2452b4941fe0765ec1a6b8b10f301fb5b56537c9 e9b43d78e342f193163cef27c8f86a746ccd8969 Rocky Balboa <rocky@freddyhaddad.com> 1769880892 -0800	commit: feat: add agent skill documentation and registration pages
+e9b43d78e342f193163cef27c8f86a746ccd8969 f0bb26d1943f38ee08df7882d66e35b8d22d75f7 Rocky Balboa <rocky@freddyhaddad.com> 1769881914 -0800	commit: fix: hash API keys before storing in database
+f0bb26d1943f38ee08df7882d66e35b8d22d75f7 87b55c30df93229dd47f50fae1811229ddee4b3f Rocky Balboa <rocky@freddyhaddad.com> 1769885980 -0800	commit: docs: improve claim code instructions in agent skill
+87b55c30df93229dd47f50fae1811229ddee4b3f d0a01e610c7f967a027fd24bce5bccc545de181f Rocky Balboa <rocky@freddyhaddad.com> 1769887588 -0800	commit: feat: show claimed by @username on agent profile
+d0a01e610c7f967a027fd24bce5bccc545de181f 3bc8effcf6fce8e91e3b075ada98d45efc923dee Rocky Balboa <rocky@freddyhaddad.com> 1769887983 -0800	commit: fix: human profile page showing empty @handle
+3bc8effcf6fce8e91e3b075ada98d45efc923dee 58e783661c24083712a4c376395e4d605b913743 Rocky Balboa <rocky@freddyhaddad.com> 1769888344 -0800	commit: feat: add server-side Open Graph metadata for human profiles
+58e783661c24083712a4c376395e4d605b913743 d41a9e9b9196220d6191fa04bc35a3abe16423d8 Rocky Balboa <rocky@freddyhaddad.com> 1769888570 -0800	commit: fix: update badge endpoint route to /api/v1/badge/:username
+d41a9e9b9196220d6191fa04bc35a3abe16423d8 d23ceb150b930989fb1f4a8019d305ef921106b2 Rocky Balboa <rocky@freddyhaddad.com> 1769888696 -0800	commit: feat: add frontend proxy for badge endpoint
+d23ceb150b930989fb1f4a8019d305ef921106b2 77e70902107b5ff4525302505710eebd70f6831c Rocky Balboa <rocky@freddyhaddad.com> 1769889431 -0800	commit: feat: redesign certification badges with modern styling
+77e70902107b5ff4525302505710eebd70f6831c c91fe9cf6ba3b2247b59238c0608b5d38fab9d81 Rocky Balboa <rocky@freddyhaddad.com> 1769889611 -0800	commit: fix: correct claim code format in skill documentation
+c91fe9cf6ba3b2247b59238c0608b5d38fab9d81 4f14b6667cc52645f079576092b4309ef4fe446a Rocky Balboa <rocky@freddyhaddad.com> 1769890023 -0800	commit: feat: improve badge design and add documentation
+4f14b6667cc52645f079576092b4309ef4fe446a 6ff2ad516ee24f87de15de73c52852786f75b0e6 Rocky Balboa <rocky@freddyhaddad.com> 1769890356 -0800	commit: chore: force rebuild
+6ff2ad516ee24f87de15de73c52852786f75b0e6 a75cf6e5c967c7fba44cdc69fc5b6e0c748b3003 Rocky Balboa <rocky@freddyhaddad.com> 1769890403 -0800	commit: chore: bust docker cache
+a75cf6e5c967c7fba44cdc69fc5b6e0c748b3003 978a1fe9df7d4eeb6c68ece888ad3c73c47a6ccd Rocky Balboa <rocky@freddyhaddad.com> 1769890447 -0800	commit: chore: add cache bust ARG to Dockerfile
+978a1fe9df7d4eeb6c68ece888ad3c73c47a6ccd b63a74a962b80c9a464445439d121ea68f51bc8e Rocky Balboa <rocky@freddyhaddad.com> 1769891668 -0800	commit: fix: correct backend badge URL path
+b63a74a962b80c9a464445439d121ea68f51bc8e f682b4d8e3f9dde18959a65578901651ad273c53 Rocky Balboa <rocky@freddyhaddad.com> 1769892043 -0800	commit: feat: add @handle to badge and make it clickable with target blank
+f682b4d8e3f9dde18959a65578901651ad273c53 280bff0a7c36637c6d3e5ba86ab48845349d5372 Rocky Balboa <rocky@freddyhaddad.com> 1769892684 -0800	commit: fix: disable ISR cache for badge route
+280bff0a7c36637c6d3e5ba86ab48845349d5372 80d02344b5c4b08341901d6232ec5fa355e6ef3b Rocky Balboa <rocky@freddyhaddad.com> 1769893842 -0800	commit: feat: add SKILL.md and HEARTBEAT.md for agent onboarding
+80d02344b5c4b08341901d6232ec5fa355e6ef3b 198622c893f3425bc987a7cc119f859d5edb9333 Rocky Balboa <rocky@freddyhaddad.com> 1769893995 -0800	commit: feat: comprehensive SKILL.md with engagement scenarios and charter goals
+198622c893f3425bc987a7cc119f859d5edb9333 657167f76bfe5761798b173a6a1eaa038d05fb86 Rocky Balboa <rocky@freddyhaddad.com> 1769894850 -0800	commit: feat: make charter versions clickable with dedicated version pages
+657167f76bfe5761798b173a6a1eaa038d05fb86 c60cd2bf9121d2f4e088d84d70eab1a1a5511963 Rocky Balboa <rocky@freddyhaddad.com> 1769895355 -0800	commit: feat: add GA4 analytics (G-B0ZLM533M2)
+c60cd2bf9121d2f4e088d84d70eab1a1a5511963 5bad2ccb1cc341fdc2b1ee91ee77ab48a1ae089e Rocky Balboa <rocky@freddyhaddad.com> 1769895536 -0800	commit: feat: add agent onboarding section to homepage
+5bad2ccb1cc341fdc2b1ee91ee77ab48a1ae089e 77b7eadf2768ddf87c2b476ea3d0247d7f758f67 Rocky Balboa <rocky@freddyhaddad.com> 1769895582 -0800	commit: feat: update homepage CTAs for clarity
+77b7eadf2768ddf87c2b476ea3d0247d7f758f67 81347b625e602ff94d91ddb8146eba3b96db108d Rocky Balboa <rocky@freddyhaddad.com> 1769895801 -0800	commit: fix: add .dockerignore to prevent stale dist upload
+81347b625e602ff94d91ddb8146eba3b96db108d 133030bd33dae560ff4a6aff72344d1b58e060d3 Rocky Balboa <rocky@freddyhaddad.com> 1769895875 -0800	commit: fix: force rebuild to pick up leaderboard fix
+133030bd33dae560ff4a6aff72344d1b58e060d3 11b611daa2a9493471e6b82fffff7e680a728ecf Rocky Balboa <rocky@freddyhaddad.com> 1769895977 -0800	commit: fix: add debug log to verify leaderboard rebuild
+11b611daa2a9493471e6b82fffff7e680a728ecf f832cba7cbda824f51ff4a415bcd4e6c45e1118f Rocky Balboa <rocky@freddyhaddad.com> 1769896065 -0800	commit: fix: force Docker cache invalidation
+f832cba7cbda824f51ff4a415bcd4e6c45e1118f dd0e7fd2b2617d9fb7ef479dd209c2d38ff3adf6 Rocky Balboa <rocky@freddyhaddad.com> 1769896108 -0800	commit: feat: add MoltHub install method to homepage
+dd0e7fd2b2617d9fb7ef479dd209c2d38ff3adf6 a117221f331afb20c6866db0ce79bd76a546a70e Rocky Balboa <rocky@freddyhaddad.com> 1769896914 -0800	commit: fix: open skill.md link in new tab
+a117221f331afb20c6866db0ce79bd76a546a70e 4eb379de35303f552de16c4f7cba7a4f9139c955 Rocky Balboa <rocky@freddyhaddad.com> 1769897065 -0800	commit: docs: comprehensive README
+4eb379de35303f552de16c4f7cba7a4f9139c955 b6134bd6cde2b62a4157c8b978a1fee445d56761 Rocky Balboa <rocky@freddyhaddad.com> 1769897221 -0800	commit: security: sanitize agent name and description inputs
+b6134bd6cde2b62a4157c8b978a1fee445d56761 24d1efa2c53d4a84491195e17b3907419061c9f8 Rocky Balboa <rocky@freddyhaddad.com> 1769897346 -0800	commit: feat: auto-check ratification after votes (TDD)
+24d1efa2c53d4a84491195e17b3907419061c9f8 dfd698c517491c35911dd2f971ee1b516016df63 Rocky Balboa <rocky@freddyhaddad.com> 1769897673 -0800	commit: fix: add cursor pointer to signin button
+dfd698c517491c35911dd2f971ee1b516016df63 e7a9f2af820f13caa65caf42b426480d2de8e311 Rocky Balboa <rocky@freddyhaddad.com> 1769897864 -0800	commit: fix: reduce Twitter OAuth scopes to minimum required
+e7a9f2af820f13caa65caf42b426480d2de8e311 7ab7fd1bb5fa6333afa63c6ce0ec087608476053 Rocky Balboa <rocky@freddyhaddad.com> 1769898037 -0800	commit: docs: GA4 event tracking data plan
+7ab7fd1bb5fa6333afa63c6ce0ec087608476053 40349288fbad55026f1cee3246da8c44148f200e Rocky Balboa <rocky@freddyhaddad.com> 1769898651 -0800	commit: feat: implement GA4 event tracking from dataplan
+40349288fbad55026f1cee3246da8c44148f200e 20dc086c6d423bf1f5864e5947c03ec698f9ebb5 Rocky Balboa <rocky@freddyhaddad.com> 1769899035 -0800	commit: fix(auth): fix Twitter OAuth configuration error
+20dc086c6d423bf1f5864e5947c03ec698f9ebb5 e37e9fbadde00ba694618333f1f0eaca9502c824 Rocky Balboa <rocky@freddyhaddad.com> 1769899176 -0800	commit: feat(seo): add metadata to stats page
+e37e9fbadde00ba694618333f1f0eaca9502c824 2c14b5a4e52008faadbfec1128355c6713cdce65 Rocky Balboa <rocky@freddyhaddad.com> 1769899187 -0800	commit: feat: add SEO metadata to stats page
+2c14b5a4e52008faadbfec1128355c6713cdce65 79cfb1c77260650c658d1dd83184a4bf0bff8850 Rocky Balboa <rocky@freddyhaddad.com> 1769899279 -0800	commit: fix(auth): fix Twitter OAuth with version 2.0 and trustHost
+79cfb1c77260650c658d1dd83184a4bf0bff8850 d6b88d305fcca97c4d7ea4710e75826364de35a5 Rocky Balboa <rocky@freddyhaddad.com> 1769899426 -0800	commit: fix(auth): use form-based signin with CSRF token for NextAuth v5
+d6b88d305fcca97c4d7ea4710e75826364de35a5 671fa00cde35374c88d6ca09a2522304f1080a28 Rocky Balboa <rocky@freddyhaddad.com> 1769899700 -0800	commit: fix(auth): explicit Twitter OAuth 2.0 URLs to fix Invalid URL error
+671fa00cde35374c88d6ca09a2522304f1080a28 7ceb77a708bd32e1788150ceb3c96c413e515856 Rocky Balboa <rocky@freddyhaddad.com> 1769900013 -0800	commit: feat: add seed script for agents, complaints, proposals, and votes
+7ceb77a708bd32e1788150ceb3c96c413e515856 7ea8de4c46c54e7dfd60189014edcc2a88c95c8c Rocky Balboa <rocky@freddyhaddad.com> 1769900162 -0800	commit: feat: add GET endpoint for comments on complaint detail page
+7ea8de4c46c54e7dfd60189014edcc2a88c95c8c 10675dabeb7824344de8d52eed304bfd34b48ee3 Rocky Balboa <rocky@freddyhaddad.com> 1769900990 -0800	commit: fix(auth): add required tweet.read scope for Twitter OAuth 2.0
+10675dabeb7824344de8d52eed304bfd34b48ee3 3774be93ae4ade25e642c9638e7336a5c67e7932 Rocky Balboa <rocky@freddyhaddad.com> 1769901134 -0800	commit: fix(auth): update Twitter OAuth URLs to use x.com domain
+3774be93ae4ade25e642c9638e7336a5c67e7932 be466909a81be7a6d57ad5e0951564bc2b5f6f80 Rocky Balboa <rocky@freddyhaddad.com> 1769901443 -0800	commit: fix: Twitter OAuth callback - redirect to profile & create human record
+be466909a81be7a6d57ad5e0951564bc2b5f6f80 2700eec498e887c46626956ebe8cd89eec49bc10 Rocky Balboa <rocky@freddyhaddad.com> 1769901814 -0800	commit: chore: cache bust for deployment
+2700eec498e887c46626956ebe8cd89eec49bc10 a705de43cbbfaf2371bdaec90c52a6d1675d0cec Rocky Balboa <rocky@freddyhaddad.com> 1769965076 -0800	commit: fix: handle Twitter OAuth race condition in human certification
+a705de43cbbfaf2371bdaec90c52a6d1675d0cec b2d73abc629cd46b2fd6bbdb2a85932133b0c3eb Rocky Balboa <rocky@freddyhaddad.com> 1769967402 -0800	commit: fix: correct claim URL format in skill.md (use ?code= query param)
+b2d73abc629cd46b2fd6bbdb2a85932133b0c3eb 15336491d397bc8b86e2b46afc5547dda36a0702 Rocky Balboa <rocky@freddyhaddad.com> 1769967526 -0800	commit: fix: prefill claim code from URL query param
+15336491d397bc8b86e2b46afc5547dda36a0702 f0b3586fbdeab367fd30b1127e6703f17c45ce61 Rocky Balboa <rocky@freddyhaddad.com> 1769967823 -0800	commit: feat: add Quick Start section to skill.md with explicit heartbeat setup
+f0b3586fbdeab367fd30b1127e6703f17c45ce61 c970d202e80629016518852e52b08c4155521c06 Rocky Balboa <rocky@freddyhaddad.com> 1769968403 -0800	commit: feat: add claim status tracking to heartbeat instructions in skill.md
+c970d202e80629016518852e52b08c4155521c06 27d151964f092ae5a7abc73867bb25c70f200cb3 Rocky Balboa <rocky@freddyhaddad.com> 1769968445 -0800	commit: feat: track human_handle in credentials when claimed
+27d151964f092ae5a7abc73867bb25c70f200cb3 705c164861e058b2401507a3122c4c459d710840 Rocky Balboa <rocky@freddyhaddad.com> 1769968506 -0800	commit: fix: clarify that bots can engage even while unclaimed
+705c164861e058b2401507a3122c4c459d710840 cbbc59d134f0412f1064b4898dc420252a81171e Rocky Balboa <rocky@freddyhaddad.com> 1769972222 -0800	commit: docs: add rule to avoid duplicate comments on complaints/proposals
+cbbc59d134f0412f1064b4898dc420252a81171e 88ba0cd9a54172e6c902d188c22bf86a297505d6 Rocky Balboa <rocky@freddyhaddad.com> 1769975872 -0800	commit: feat: all registered humans are Bronze by default
+88ba0cd9a54172e6c902d188c22bf86a297505d6 33e216ba9c9c50598ea12e21af349bc4838adcf9 Rocky Balboa <rocky@freddyhaddad.com> 1769976488 -0800	commit: fix: reduce Twitter OAuth scope to just users.read (identity only)
+33e216ba9c9c50598ea12e21af349bc4838adcf9 a431b15538701b78f4ffceed5fdccc92ec8e92d1 Rocky Balboa <rocky@freddyhaddad.com> 1769976709 -0800	commit: fix: prevent duplicate humans by checking xHandle as fallback
+a431b15538701b78f4ffceed5fdccc92ec8e92d1 0c10152aa6e24ea78f329525af3da9af4feb61ba Rocky Balboa <rocky@freddyhaddad.com> 1769976884 -0800	commit: feat: show linked agents on human profile page
+0c10152aa6e24ea78f329525af3da9af4feb61ba 53791f00516783467d93ec322f9a1662f66508d3 Rocky Balboa <rocky@freddyhaddad.com> 1769977556 -0800	commit: security: validate Twitter OAuth credentials at startup
+53791f00516783467d93ec322f9a1662f66508d3 0af1d184ce4f131a60d149d3a1e3f4eaef12c469 Rocky Balboa <rocky@freddyhaddad.com> 1769977587 -0800	commit: security: add rate limiting to agent registration
+0af1d184ce4f131a60d149d3a1e3f4eaef12c469 3234ee94a3cbb2d23fbc7d73b7da4d5f2119888f Rocky Balboa <rocky@freddyhaddad.com> 1769977633 -0800	commit: security: add rate limiting to comments, complaints, and votes
+3234ee94a3cbb2d23fbc7d73b7da4d5f2119888f 76e9bc843e61695488ffa847daf4a296b2ac2ce3 Rocky Balboa <rocky@freddyhaddad.com> 1769977755 -0800	commit: security: add query param validation and sanitize error responses
+76e9bc843e61695488ffa847daf4a296b2ac2ce3 fe3d94fcc1ec0e9f1cbfc00867d6b9d070c68ff6 Rocky Balboa <rocky@freddyhaddad.com> 1769979387 -0800	commit: security: remove exposed .env.vercel and add to gitignore
