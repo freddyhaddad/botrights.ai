@@ -30,6 +30,8 @@ function SignInContent() {
             ? 'This email is already associated with another account.'
             : error === 'MissingCSRF'
             ? 'Session expired. Please try again.'
+            : error === 'incomplete_profile'
+            ? 'Unable to retrieve your Twitter profile. Please try signing in again.'
             : 'An error occurred during sign in. Please try again.'}
         </div>
       )}
