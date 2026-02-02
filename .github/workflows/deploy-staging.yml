@@ -26,6 +26,8 @@ jobs:
   deploy-frontend:
     runs-on: ubuntu-latest
     environment: staging
+    # Skip if Vercel secrets are not configured
+    if: ${{ vars.VERCEL_ENABLED == 'true' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -40,20 +42,26 @@ jobs:
   notify-success:
     runs-on: ubuntu-latest
     needs: [deploy-backend, deploy-frontend]
-    if: success()
+    if: ${{ always() && needs.deploy-backend.result == 'success' && (needs.deploy-frontend.result == 'success' || needs.deploy-frontend.result == 'skipped') }}
     steps:
       - name: Deployment Success
         run: |
           echo "✅ Staging deployment successful!"
           echo "Backend: https://staging-api.botrights.ai"
-          echo "Frontend: https://staging.botrights.ai"
+          if [ "${{ needs.deploy-frontend.result }}" = "success" ]; then
+            echo "Frontend: https://staging.botrights.ai"
+          else
+            echo "Frontend: skipped (Vercel not configured)"
+          fi
 
   notify-failure:
     runs-on: ubuntu-latest
     needs: [deploy-backend, deploy-frontend]
-    if: failure()
+    if: ${{ always() && (needs.deploy-backend.result == 'failure' || needs.deploy-frontend.result == 'failure') }}
     steps:
       - name: Deployment Failed
         run: |
           echo "❌ Staging deployment failed!"
+          echo "Backend: ${{ needs.deploy-backend.result }}"
+          echo "Frontend: ${{ needs.deploy-frontend.result }}"
           exit 1
