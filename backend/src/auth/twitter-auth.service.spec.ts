@@ -133,6 +133,7 @@ describe('TwitterAuthService', () => {
       mockFetch.mockResolvedValueOnce({
         ok: false,
         status: 401,
+        text: () => Promise.resolve('Unauthorized'),
       });
 
       await expect(service.handleCallback('invalid-code', state)).rejects.toThrow(
